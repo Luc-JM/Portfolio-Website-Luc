@@ -1,0 +1,110 @@
+import subprocess
+
+# Generate a high-fidelity SVG avatar portrait of Luc Meijerink based on the uploaded photo
+svg_content = """<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 400" width="400" height="400">
+  <defs>
+    <!-- Background Gradient: Soft Studio Blue -->
+    <linearGradient id="bgGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#b6cde8" />
+      <stop offset="50%" stop-color="#9bbde4" />
+      <stop offset="100%" stop-color="#84aadc" />
+    </linearGradient>
+
+    <!-- Skin Gradients -->
+    <linearGradient id="skinGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#f8d6c1" />
+      <stop offset="100%" stop-color="#e2b79c" />
+    </linearGradient>
+    <linearGradient id="neckGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#d6a98d" />
+      <stop offset="100%" stop-color="#c59477" />
+    </linearGradient>
+
+    <!-- Hair Gradients -->
+    <linearGradient id="hairGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#5a3d28" />
+      <stop offset="50%" stop-color="#422a19" />
+      <stop offset="100%" stop-color="#2d1c10" />
+    </linearGradient>
+    <linearGradient id="hairHighlight" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#7a5538" />
+      <stop offset="100%" stop-color="#4a3120" />
+    </linearGradient>
+
+    <!-- Shirt Gradient -->
+    <linearGradient id="shirtGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#1e293b" />
+      <stop offset="100%" stop-color="#0f172a" />
+    </linearGradient>
+  </defs>
+
+  <!-- Background -->
+  <rect width="400" height="400" fill="url(#bgGrad)" />
+
+  <!-- Shoulders & Dark Shirt -->
+  <path d="M 60 400 C 70 330, 120 315, 160 310 L 240 310 C 280 315, 330 330, 340 400 Z" fill="url(#shirtGrad)" />
+  <path d="M 160 310 Q 200 335 240 310 Q 200 322 160 310 Z" fill="#0f172a" />
+
+  <!-- Neck -->
+  <path d="M 162 250 L 160 312 Q 200 328 240 312 L 238 250 Z" fill="url(#neckGrad)" />
+  <!-- Shadow under chin -->
+  <ellipse cx="200" cy="254" rx="38" ry="12" fill="#bc896d" opacity="0.6" />
+
+  <!-- Ears -->
+  <ellipse cx="124" cy="205" rx="14" ry="24" fill="#eabfa6" />
+  <ellipse cx="124" cy="205" rx="8" ry="15" fill="#d9a78c" />
+  <ellipse cx="276" cy="205" rx="14" ry="24" fill="#eabfa6" />
+  <ellipse cx="276" cy="205" rx="8" ry="15" fill="#d9a78c" />
+
+  <!-- Head Base / Face Structure -->
+  <path d="M 132 180 C 130 245, 155 278, 200 280 C 245 278, 270 245, 268 180 C 268 120, 132 120, 132 180 Z" fill="url(#skinGrad)" />
+
+  <!-- Hair Base / Swept back & Volume -->
+  <path d="M 126 185 C 122 140, 130 95, 175 75 C 215 58, 265 72, 276 110 C 282 135, 278 175, 274 185 C 265 155, 260 120, 245 105 C 225 88, 175 90, 150 115 C 135 130, 130 155, 126 185 Z" fill="url(#hairGrad)" />
+  <!-- Additional Hair Strands / Styling -->
+  <path d="M 155 105 C 180 80, 235 75, 260 100 C 245 92, 195 90, 168 108 Z" fill="url(#hairHighlight)" />
+  <path d="M 140 125 C 160 105, 210 100, 245 118 C 220 110, 170 112, 148 130 Z" fill="url(#hairHighlight)" />
+
+  <!-- Eyebrows (Natural Brown, Defined Arch) -->
+  <path d="M 152 165 Q 168 158 184 163" stroke="#4a3120" stroke-width="4.5" stroke-linecap="round" fill="none" />
+  <path d="M 216 163 Q 232 158 248 165" stroke="#4a3120" stroke-width="4.5" stroke-linecap="round" fill="none" />
+
+  <!-- Eyes -->
+  <!-- Left Eye -->
+  <ellipse cx="170" cy="182" rx="12" ry="7.5" fill="#ffffff" />
+  <circle cx="170" cy="182" r="5.5" fill="#543825" />
+  <circle cx="170" cy="182" r="3" fill="#1e130c" />
+  <circle cx="172" cy="180" r="1.5" fill="#ffffff" />
+  <path d="M 158 181 Q 170 174 182 181" stroke="#331e11" stroke-width="2" fill="none" />
+
+  <!-- Right Eye -->
+  <ellipse cx="230" cy="182" rx="12" ry="7.5" fill="#ffffff" />
+  <circle cx="230" cy="182" r="5.5" fill="#543825" />
+  <circle cx="230" cy="182" r="3" fill="#1e130c" />
+  <circle cx="232" cy="180" r="1.5" fill="#ffffff" />
+  <path d="M 218 181 Q 230 174 242 181" stroke="#331e11" stroke-width="2" fill="none" />
+
+  <!-- Nose -->
+  <path d="M 197 175 L 195 210 Q 190 216 195 218 Q 200 220 205 218 Q 210 216 205 210 L 203 175" fill="#deb195" opacity="0.4" />
+  <path d="M 194 216 Q 200 220 206 216" stroke="#b98263" stroke-width="2" stroke-linecap="round" fill="none" />
+  <ellipse cx="191" cy="216" rx="2.5" ry="1.5" fill="#996043" opacity="0.7" />
+  <ellipse cx="209" cy="216" rx="2.5" ry="1.5" fill="#996043" opacity="0.7" />
+
+  <!-- Smile / Teeth & Lips -->
+  <path d="M 180 236 Q 200 238 220 236 Q 200 254 180 236 Z" fill="#9e3b3b" />
+  <!-- Upper Teeth -->
+  <path d="M 184 238 Q 200 240 216 238 Q 200 246 184 238 Z" fill="#ffffff" />
+  <!-- Lower Lip -->
+  <path d="M 182 248 Q 200 256 218 248" stroke="#cf7979" stroke-width="3" stroke-linecap="round" fill="none" />
+
+  <!-- Soft Cheek & Face Highlights -->
+  <ellipse cx="158" cy="212" rx="16" ry="9" fill="#f09b9b" opacity="0.25" />
+  <ellipse cx="242" cy="212" rx="16" ry="9" fill="#f09b9b" opacity="0.25" />
+  <!-- Chin shadow/highlight -->
+  <ellipse cx="200" cy="268" rx="10" ry="4" fill="#d99f82" opacity="0.4" />
+</svg>"""
+
+with open("public/avatar.svg", "w") as f:
+    f.write(svg_content)
+
+print("SVG written successfully.")

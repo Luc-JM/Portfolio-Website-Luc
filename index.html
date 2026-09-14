@@ -1,0 +1,1256 @@
+<!doctype html>
+<html lang="nl">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Luc Meijerink - Portfolio AI Minor Dashboard</title>
+    <meta name="description" content="Persoonlijk dashboard en portfolio van Luc Meijerink (Finance & Control, 21 jaar) voor de minor Future-proof met AI!, met interactieve 2-weken sprint timeline en bewijzen voor alle leeruitkomsten (LU 1 t/m 5)." />
+    <meta property="og:title" content="Luc Meijerink - Portfolio AI Minor Dashboard" />
+    <meta property="og:description" content="Persoonlijk dashboard en portfolio van Luc Meijerink (Finance & Control, 21 jaar) voor de minor Future-proof met AI!, met interactieve 2-weken sprint timeline en bewijzen voor alle leeruitkomsten (LU 1 t/m 5)." />
+    <meta property="og:type" content="website" />
+    <meta name="twitter:card" content="summary_large_image" />
+
+    <!-- Google Fonts: Inter, Montserrat, Plus Jakarta Sans & JetBrains Mono -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Montserrat:wght@500;600;700;800&family=Plus+Jakarta+Sans:wght@500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+
+    <!-- Pure Vanilla Stylesheet -->
+    <link rel="stylesheet" href="/style.css">
+  </head>
+  <body>
+    <!-- Site Header & Sticky Navbar -->
+    <header class="site-header" id="header">
+      <div class="container navbar">
+        <a href="#dashboard" class="brand-logo" id="nav-brand-link">
+          <span class="brand-name">Luc Meijerink</span>
+          <span class="brand-badge">Minor: Future-proof met AI!</span>
+        </a>
+
+        <!-- Desktop Navigation with Timeline -->
+        <nav aria-label="Hoofdnavigatie">
+          <ul class="nav-menu" id="desktop-nav-menu">
+            <li><a href="#dashboard" class="nav-link active">Dashboard</a></li>
+            <li><a href="#documenten" class="nav-link">Documenten</a></li>
+            <li><a href="#leeruitkomsten" class="nav-link">Leeruitkomsten</a></li>
+            <li><a href="#voortgang" class="nav-link">Sprint Matrix</a></li>
+            <li><a href="#timeline" class="nav-link highlight-link">Timeline</a></li>
+            <li><a href="#projecten" class="nav-link">Mijn Bewijzen</a></li>
+            <li><a href="#contact" class="nav-link">Contact</a></li>
+          </ul>
+        </nav>
+
+        <!-- Right Action Controls -->
+        <div class="nav-actions">
+          <button id="admin-mode-toggle" class="admin-mode-btn" aria-label="Schakel beheerdersmodus in of uit" title="Schakel Luc Beheerdersmodus in/uit om bewijzen, statussen en links direct te beheren">
+            <span id="admin-toggle-text">🔒 Admin Modus</span>
+          </button>
+
+          <button id="theme-toggle-btn" class="theme-toggle-btn" aria-label="Schakel donker / licht thema" title="Wissel kleurenthema (opgeslagen in LocalStorage)">
+            <!-- Moon Icon (Light Mode active) -->
+            <svg id="icon-moon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"></path>
+            </svg>
+            <!-- Sun Icon (Dark Mode active) -->
+            <svg id="icon-sun" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display: none;">
+              <circle cx="12" cy="12" r="4"></circle>
+              <path d="M12 2v2"></path>
+              <path d="M12 20v2"></path>
+              <path d="m4.93 4.93 1.41 1.41"></path>
+              <path d="m17.66 17.66 1.41 1.41"></path>
+              <path d="M2 12h2"></path>
+              <path d="M20 12h2"></path>
+              <path d="m6.34 17.66-1.41 1.41"></path>
+              <path d="m19.07 4.93-1.41 1.41"></path>
+            </svg>
+          </button>
+
+          <button id="mobile-menu-toggle" class="mobile-menu-toggle" aria-label="Open mobiel menu en profiel">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <line x1="4" x2="20" y1="12" y2="12"></line>
+              <line x1="4" x2="20" y1="6" y2="6"></line>
+              <line x1="4" x2="20" y1="18" y2="18"></line>
+            </svg>
+          </button>
+        </div>
+      </div>
+
+      <!-- Mobiele Navigatie Backdrop & Slide-out Paneel met Luc's Profiel -->
+      <div id="mobile-nav-backdrop" class="mobile-nav-backdrop" aria-hidden="true"></div>
+      <div id="mobile-nav-drawer" class="mobile-nav-drawer" role="dialog" aria-label="Studentenprofiel en navigatiemenu">
+        <div class="mobile-drawer-header">
+          <div class="mobile-drawer-title-group">
+            <span class="mobile-drawer-badge">Studentenprofiel</span>
+            <span class="mobile-drawer-name">Luc Meijerink</span>
+          </div>
+          <button type="button" id="mobile-drawer-close-btn" class="mobile-drawer-close-btn" aria-label="Sluit menu">✕</button>
+        </div>
+
+        <!-- Student Profile Box in het Mobiele Menu -->
+        <div class="mobile-profile-card">
+          <div class="profile-photo-hero mobile-photo-hero">
+            <div class="profile-photo-wrapper">
+              <div class="profile-photo-frame">
+                <div class="profile-photo-avatar">
+                  <span class="photo-initials">LM</span>
+                </div>
+                <div class="photo-status-badge" title="Actief Student • 2026">
+                  <span class="status-live-dot"></span>
+                  <span>Actief Student</span>
+                </div>
+              </div>
+            </div>
+            <div class="profile-photo-meta">
+              <h3 class="profile-header-name">Luc Meijerink</h3>
+              <p class="profile-header-sub">Student Finance & Control • AI Minor 2026</p>
+            </div>
+          </div>
+
+          <div class="profile-info-list">
+            <div class="profile-info-item">
+              <span class="info-label">Opleiding</span>
+              <span class="info-value">Finance & Control</span>
+            </div>
+            <div class="profile-info-item">
+              <span class="info-label">Leeftijd</span>
+              <span class="info-value highlight">21 jaar</span>
+            </div>
+          </div>
+
+          <!-- Live Huidige Focus Widget Mobiel -->
+          <div class="profile-current-focus-card">
+            <div class="focus-card-header">
+              <div class="focus-title-group">
+                <span class="focus-pulse-dot" aria-hidden="true"></span>
+                <span class="focus-section-label">Huidige Focus</span>
+              </div>
+              <span class="focus-sprint-badge">Sprint 1 (Actief)</span>
+            </div>
+            <div class="focus-story-content">
+              <!-- Dynamisch gevuld via script.js -->
+            </div>
+          </div>
+
+          <!-- Directe Contact- & Platformknoppen Mobiel -->
+          <div class="profile-action-buttons">
+            <a href="mailto:luc.meijerink@student.hu.nl" class="social-btn email-btn" title="Stuur een e-mail naar Luc Meijerink">
+              <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <rect width="20" height="16" x="2" y="4" rx="2"></rect>
+                <path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"></path>
+              </svg>
+              <span class="btn-text-wrap">
+                <span class="btn-sublabel">Direct e-mailen</span>
+                <span class="btn-mainlabel">luc.meijerink@student.hu.nl</span>
+              </span>
+              <span class="btn-arrow">✉</span>
+            </a>
+
+            <a href="https://www.linkedin.com/in/luc-meijerink-16106b217/" target="_blank" rel="noopener noreferrer" class="social-btn linkedin-btn" title="LinkedIn profiel">
+              <svg width="17" height="17" viewBox="0 0 24 24" fill="currentColor">
+                <path d="M19 0h-14c-2.761 0-5 2.239-5 5v14c0 2.761 2.239 5 5 5h14c2.762 0 5-2.239 5-5v-14c0-2.761-2.238-5-5-5zm-11 19h-3v-11h3v11zm-1.5-12.268c-.966 0-1.75-.79-1.75-1.764s.784-1.764 1.75-1.764 1.75.79 1.75 1.764-.783 1.764-1.75 1.764zm13.5 12.268h-3v-5.604c0-3.368-4-3.113-4 0v5.604h-3v-11h3v1.765c1.396-2.586 7-2.777 7 2.476v6.759z"/>
+              </svg>
+              <span>LinkedIn Profiel</span>
+              <span class="btn-arrow">↗</span>
+            </a>
+
+            <a href="https://github.com/lucmeijerink" target="_blank" rel="noopener noreferrer" class="social-btn github-btn" title="GitHub">
+              <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M15 22v-4a4.8 4.8 0 0 0-1-3.5c3 0 6-2 6-5.5.08-1.25-.27-2.48-1-3.5.28-1.15.28-2.35 0-3.5 0 0-1 0-3 1.5-2.64-.5-5.36-.5-8 0C6 2 5 2 5 2c-.3 1.15-.3 2.35 0 3.5A5.403 5.403 0 0 0 4 9c0 3.5 3 5.5 6 5.5-.39.49-.68 1.05-.85 1.65-.17.6-.22 1.23-.15 1.85v4"></path>
+                <path d="M9 18c-4.51 2-5-2-7-2"></path>
+              </svg>
+              <span>GitHub Versiebeheer</span>
+              <span class="btn-arrow">↗</span>
+            </a>
+
+            <button type="button" class="btn-qr-modal-open mobile-qr-btn" title="Vergroot QR-code">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7"/></svg>
+              <span>Toon Portfolio QR-code</span>
+            </button>
+          </div>
+        </div>
+
+        <div class="mobile-drawer-divider">
+          <span>Navigatiemenu</span>
+        </div>
+
+        <nav class="mobile-nav-links" aria-label="Mobiele navigatie links">
+          <a href="#dashboard" class="nav-link">📊 Dashboard</a>
+          <a href="#documenten" class="nav-link">📁 Documenten & Bewijzen</a>
+          <a href="#leeruitkomsten" class="nav-link">🎯 Leeruitkomsten (LU 1 t/m 5)</a>
+          <a href="#voortgang" class="nav-link">📈 Sprint Matrix & Voortgang</a>
+          <a href="#timeline" class="nav-link highlight-link">⏱️ Sprint Timeline (2 Weken)</a>
+          <a href="#projecten" class="nav-link">📝 Mijn Bewijzen & Stories</a>
+          <a href="#contact" class="nav-link">👤 Contact & Beoordeling</a>
+        </nav>
+      </div>
+    </header>
+
+    <main>
+      <!-- Formeel Assessment Print-Header (Alleen zichtbaar bij afdrukken / PDF-export) -->
+      <div class="print-assessment-header" id="print-assessment-header" aria-hidden="true">
+        <div class="print-header-top">
+          <div class="print-title-block">
+            <span class="print-eyebrow">Hogeschool Utrecht • Minor "Future-proof met AI!" • Assessmentdossier</span>
+            <h1 class="print-main-title">Portfolio Assessment- & Voortgangsrapport</h1>
+            <p class="print-subtitle">
+              Formele rapportage van behaalde leeruitkomsten (LU 1 t/m LU 5), sprintmatrix evaluaties en bewijslast voor beoordelingsgesprekken.
+            </p>
+          </div>
+          <div class="print-badge-block">
+            <div class="print-status-tag">Assessment Versie</div>
+            <div class="print-date-tag">Afdrukdatum: <span id="print-date-display">11 september 2026</span></div>
+          </div>
+        </div>
+
+        <div class="print-student-bar">
+          <div class="print-student-item">
+            <span class="print-lbl">Student:</span>
+            <span class="print-val"><strong>Luc Meijerink</strong> (21 jaar)</span>
+          </div>
+          <div class="print-student-item">
+            <span class="print-lbl">Opleiding:</span>
+            <span class="print-val">Finance & Control</span>
+          </div>
+          <div class="print-student-item">
+            <span class="print-lbl">Contact:</span>
+            <span class="print-val">luc.meijerink@student.hu.nl</span>
+          </div>
+          <div class="print-student-item">
+            <span class="print-lbl">Einddoel:</span>
+            <span class="print-val highlight"><strong>18 Voldoendes</strong> (Sprint 1 t/m 8)</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- 1. DASHBOARD SECTIE (Parallellogram Vorm 1: Wit) -->
+      <section id="dashboard" class="parallelogram-section section-bg-white dashboard-hero-section">
+        <div class="content-wrapper section-content-wrapper">
+          <div class="container dashboard-grid">
+          
+          <!-- LINKERKANT: Het Centrale Executive Dashboard -->
+          <div class="dashboard-main-col">
+            <div class="dash-meta-row">
+              <div class="dash-meta-badge" id="dash-sprint-badge">
+                <span class="pulse-dot"></span>
+                <span id="dash-sprint-badge-text">Minor "Future-proof met AI!" • Sprint 1 Actief (2 weken ritme)</span>
+              </div>
+              <button type="button" id="btn-export-pdf-top" class="btn-dash-export-top" title="Exporteer Portfolio naar PDF voor beoordelingsgesprek">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                  <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                  <polyline points="14 2 14 8 20 8"></polyline>
+                  <line x1="16" y1="13" x2="8" y2="13"></line>
+                  <line x1="16" y1="17" x2="8" y2="17"></line>
+                </svg>
+                <span>Exporteer naar PDF</span>
+              </button>
+            </div>
+
+            <h1 class="dash-hero-title">Finance & Control AI-Dashboard</h1>
+            <p class="dash-hero-lead">
+              Welkom op mijn centrale assessment- en ontwikkelomgeving. Hier monitor en presenteer ik hoe ik bedrijfseconomische analyse combineer met AI-toepassingen, process mining (SAP Signavio / Celonis) en geautomatiseerde workflows om financiële knelpunten op te lossen.
+            </p>
+
+            <!-- Dashboard KPI & Assessment Gauge Grid -->
+            <div class="dash-overview-row">
+              <!-- Assessment Score Gauge Card -->
+              <div class="gauge-card-container" id="assessment-gauge-card">
+                <div class="gauge-card-header">
+                  <div class="gauge-title-wrap">
+                    <span class="gauge-icon">🎯</span>
+                    <div>
+                      <h3 class="gauge-card-title">Assessment Voortgang</h3>
+                      <p class="gauge-card-sub">Doelpunten op basis van behaalde stories</p>
+                    </div>
+                  </div>
+                  <span class="gauge-status-pill" id="gauge-status-pill">Startfase (Sprint 1)</span>
+                </div>
+
+                <div class="gauge-visual-box">
+                  <!-- SVG Semi-Circle Speedometer / Gauge Meter -->
+                  <svg class="assessment-gauge-svg" viewBox="0 0 200 125" preserveAspectRatio="xMidYMid meet" aria-label="Assessment Voortgang Gauge Meter">
+                    <defs>
+                      <linearGradient id="gaugeGradient" x1="0%" y1="0%" x2="100%" y2="0%">
+                        <stop offset="0%" stop-color="#3b82f6" />
+                        <stop offset="55%" stop-color="#06b6d4" />
+                        <stop offset="100%" stop-color="#10b981" />
+                      </linearGradient>
+                      <filter id="gaugeGlow" x="-20%" y="-20%" width="140%" height="140%">
+                        <feDropShadow dx="0" dy="2" stdDeviation="3" flood-color="#2563eb" flood-opacity="0.3"/>
+                      </filter>
+                    </defs>
+
+                    <!-- Background track (semi-circle arc radius 76, center 100, 105) -->
+                    <path d="M 24 105 A 76 76 0 0 1 176 105" fill="none" stroke="var(--border-subtle)" stroke-width="14" stroke-linecap="round" />
+
+                    <!-- Active progress arc (arc length = 238.76) -->
+                    <path id="gauge-progress-arc" d="M 24 105 A 76 76 0 0 1 176 105" fill="none" stroke="url(#gaugeGradient)" stroke-width="14" stroke-linecap="round" stroke-dasharray="238.76" stroke-dashoffset="238.76" filter="url(#gaugeGlow)" />
+
+                    <!-- Needle indicator -->
+                    <g id="gauge-needle-group" transform="rotate(-90, 100, 105)">
+                      <line x1="100" y1="105" x2="100" y2="40" stroke="var(--text-primary)" stroke-width="3" stroke-linecap="round" />
+                      <circle cx="100" cy="105" r="7" fill="var(--accent-primary)" />
+                      <circle cx="100" cy="105" r="3" fill="#ffffff" />
+                    </g>
+
+                    <!-- Scale markers -->
+                    <text x="24" y="120" text-anchor="middle" class="gauge-scale-lbl">0</text>
+                    <text x="100" y="24" text-anchor="middle" class="gauge-scale-lbl center">9 (Midterm)</text>
+                    <text x="176" y="120" text-anchor="middle" class="gauge-scale-lbl">18 Doel</text>
+
+                    <!-- Centered Score Display -->
+                    <text x="100" y="88" text-anchor="middle" class="gauge-center-val">
+                      <tspan id="gauge-score-number" class="gauge-score-big">0</tspan>
+                      <tspan class="gauge-score-total"> / 18 Voldoendes</tspan>
+                    </text>
+                    <text x="100" y="103" text-anchor="middle" id="gauge-percent-text" class="gauge-center-sub">0% behaald</text>
+                  </svg>
+                </div>
+
+                <div class="gauge-footer-meta">
+                  <div class="gauge-meta-item">
+                    <span class="meta-label">Voldane Leeruitkomsten</span>
+                    <span class="meta-value highlight" id="gauge-lus-voldaan">0 / 5 LU's</span>
+                  </div>
+                  <div class="gauge-meta-divider"></div>
+                  <div class="gauge-meta-item">
+                    <span class="meta-label">Behaalde Voldoendes</span>
+                    <span class="meta-value" id="gauge-stories-behaald">0 / 18</span>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Compacte KPI Metrics Grid (3 overzichtelijke kernkaarten zonder dubbele score) -->
+              <div class="kpi-metrics-grid">
+                <div class="kpi-card" id="kpi-current-sprint">
+                  <div class="kpi-header">
+                    <span class="kpi-icon">⚡</span>
+                    <span class="kpi-label">Huidige Sprint</span>
+                  </div>
+                  <div class="kpi-val">Sprint 1</div>
+                  <div class="kpi-sub">Week 1 - 2 • 7 - 20 sep 2026</div>
+                </div>
+
+                <div class="kpi-card" id="kpi-stories-count">
+                  <div class="kpi-header">
+                    <span class="kpi-icon">📋</span>
+                    <span class="kpi-label">Stories in Sprint 1</span>
+                  </div>
+                  <div class="kpi-val" id="kpi-live-stories">0 / 5</div>
+                  <div class="kpi-sub" id="kpi-stories-types-sub">3 RS • 2 US • 0 LS</div>
+                </div>
+
+                <div class="kpi-card" id="kpi-roadmap-sprints">
+                  <div class="kpi-header">
+                    <span class="kpi-icon">🗓️</span>
+                    <span class="kpi-label">Totale Roadmap</span>
+                  </div>
+                  <div class="kpi-val">8 Sprints</div>
+                  <div class="kpi-sub">16 Weken • 2-weken cyclus</div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Snelle Actieknoppen Dashboard -->
+            <div class="dash-actions-row">
+              <button type="button" id="btn-export-pdf" class="btn-dash export-pdf-btn" title="Exporteer en print een formeel assessment- en voortgangsrapport naar PDF voor beoordelingsgesprekken">
+                <svg class="pdf-btn-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                  <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                  <polyline points="14 2 14 8 20 8"></polyline>
+                  <line x1="16" y1="13" x2="8" y2="13"></line>
+                  <line x1="16" y1="17" x2="8" y2="17"></line>
+                  <polyline points="10 9 9 9 8 9"></polyline>
+                </svg>
+                <span>Exporteer Portfolio naar PDF</span>
+              </button>
+              <a href="#documenten" class="btn-dash primary">
+                <span>Centraal Documentenoverzicht</span>
+                <span>→</span>
+              </a>
+              <a href="#timeline" class="btn-dash secondary">
+                <span>Bekijk Sprint Timeline</span>
+              </a>
+              <a href="#leeruitkomsten" class="btn-dash outline">
+                <span>5 Leeruitkomsten</span>
+              </a>
+              <a href="#projecten" class="btn-dash outline">
+                <span>Mijn Bewijzen</span>
+              </a>
+            </div>
+          </div>
+
+          <!-- RECHTERKANT: Professioneel Profielpaneel met Profielfoto Bovenaan -->
+          <aside class="dashboard-profile-col" aria-label="Studentenprofiel Luc Meijerink">
+            <div class="profile-panel-card">
+              
+              <!-- Profielfoto Gedeelte Bovenaan -->
+              <div class="profile-photo-hero">
+                <div class="profile-photo-wrapper">
+                  <div class="profile-photo-frame">
+                    <!-- Modern Portrait Avatar Visual -->
+                    <div class="profile-photo-avatar">
+                      <span class="photo-initials">LM</span>
+                    </div>
+                    <div class="photo-status-badge" title="Actief Student • 2026">
+                      <span class="status-live-dot"></span>
+                      <span>Actief Student</span>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="profile-photo-meta">
+                  <h2 class="profile-header-name">Luc Meijerink</h2>
+                  <p class="profile-header-sub">Student Finance & Control • AI Minor 2026</p>
+                </div>
+              </div>
+
+              <!-- Sleutel Gegevens (Opleiding & Leeftijd) -->
+              <div class="profile-info-list">
+                <div class="profile-info-item">
+                  <span class="info-label">Opleiding</span>
+                  <span class="info-value">Finance & Control</span>
+                </div>
+                <div class="profile-info-item">
+                  <span class="info-label">Leeftijd</span>
+                  <span class="info-value highlight">21 jaar</span>
+                </div>
+              </div>
+
+              <!-- 'Huidige Focus' Widget (Automatisch uitgelezen actieve story uit de actieve sprint) -->
+              <div class="profile-current-focus-card" id="profile-current-focus-card">
+                <div class="focus-card-header">
+                  <div class="focus-title-group">
+                    <span class="focus-pulse-dot" aria-hidden="true"></span>
+                    <span class="focus-section-label">Huidige Focus</span>
+                  </div>
+                  <span class="focus-sprint-badge" id="focus-sprint-badge">Sprint 1 (Actief)</span>
+                </div>
+                <div class="focus-story-content" id="focus-story-content">
+                  <!-- Wordt automatisch gevuld vanuit de actieve sprint door script.js -->
+                </div>
+              </div>
+
+              <!-- Directe Contact- & Platformknoppen -->
+              <div class="profile-action-buttons">
+                <!-- E-mail Knop met luc.meijerink@student.hu.nl -->
+                <a href="mailto:luc.meijerink@student.hu.nl" class="social-btn email-btn" title="Stuur een e-mail naar Luc Meijerink">
+                  <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <rect width="20" height="16" x="2" y="4" rx="2"></rect>
+                    <path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"></path>
+                  </svg>
+                  <span class="btn-text-wrap">
+                    <span class="btn-sublabel">Direct e-mailen</span>
+                    <span class="btn-mainlabel">luc.meijerink@student.hu.nl</span>
+                  </span>
+                  <span class="btn-arrow">✉</span>
+                </a>
+
+                <!-- LinkedIn Knop -->
+                <a href="https://www.linkedin.com/in/luc-meijerink-16106b217/" target="_blank" rel="noopener noreferrer" class="social-btn linkedin-btn" title="Open LinkedIn profiel van Luc Meijerink">
+                  <svg width="17" height="17" viewBox="0 0 24 24" fill="currentColor">
+                    <path d="M19 0h-14c-2.761 0-5 2.239-5 5v14c0 2.761 2.239 5 5 5h14c2.762 0 5-2.239 5-5v-14c0-2.761-2.238-5-5-5zm-11 19h-3v-11h3v11zm-1.5-12.268c-.966 0-1.75-.79-1.75-1.764s.784-1.764 1.75-1.764 1.75.79 1.75 1.764-.783 1.764-1.75 1.764zm13.5 12.268h-3v-5.604c0-3.368-4-3.113-4 0v5.604h-3v-11h3v1.765c1.396-2.586 7-2.777 7 2.476v6.759z"/>
+                  </svg>
+                  <span>LinkedIn Profiel</span>
+                  <span class="btn-arrow">↗</span>
+                </a>
+
+                <!-- GitHub Knop -->
+                <a href="https://github.com/lucmeijerink" target="_blank" rel="noopener noreferrer" class="social-btn github-btn" title="GitHub Code Repositories">
+                  <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M15 22v-4a4.8 4.8 0 0 0-1-3.5c3 0 6-2 6-5.5.08-1.25-.27-2.48-1-3.5.28-1.15.28-2.35 0-3.5 0 0-1 0-3 1.5-2.64-.5-5.36-.5-8 0C6 2 5 2 5 2c-.3 1.15-.3 2.35 0 3.5A5.403 5.403 0 0 0 4 9c0 3.5 3 5.5 6 5.5-.39.49-.68 1.05-.85 1.65-.17.6-.22 1.23-.15 1.85v4"></path>
+                    <path d="M9 18c-4.51 2-5-2-7-2"></path>
+                  </svg>
+                  <span>GitHub Versiebeheer</span>
+                  <span class="btn-arrow">↗</span>
+                </a>
+
+                <!-- Vercel Knop -->
+                <a href="https://vercel.com" target="_blank" rel="noopener noreferrer" class="social-btn vercel-btn" title="Live Vercel Deployments">
+                  <svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor">
+                    <path d="M24 22.525H0l12-21.05 12 21.05z"/>
+                  </svg>
+                  <span>Vercel Deployments</span>
+                  <span class="btn-arrow">▲</span>
+                </a>
+
+                <!-- QR-Code Widget voor Fysieke Gesprekken & Assessoren -->
+                <div class="profile-qr-box" id="profile-portfolio-qr" role="region" aria-label="QR-code portfolio">
+                  <div class="qr-thumbnail-frame" id="qr-thumb-frame" title="Klik om QR-code schermvullend te openen">
+                    <img id="profile-qr-thumb-img" src="" alt="QR-code Portfolio Luc Meijerink" class="qr-thumbnail-img" width="62" height="62" loading="eager" />
+                  </div>
+                  <div class="qr-details">
+                    <div class="qr-badge-row">
+                      <span class="qr-label-pill">Fysiek Gesprek</span>
+                      <span class="qr-audience">Voor Assessoren</span>
+                    </div>
+                    <div class="qr-title-text">Scan Portfolio QR</div>
+                    <p class="qr-sub-text">Open direct op smartphone tijdens evaluatie</p>
+                    <button type="button" class="btn-qr-modal-open" id="btn-open-qr-modal" title="Toon schermvullende QR-code">
+                      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7"/></svg>
+                      <span>Vergroot QR-code</span>
+                    </button>
+                  </div>
+                </div>
+              </div>
+
+            </div>
+          </aside>
+
+        </div>
+      </div>
+      </section>
+
+      <!-- 2. CENTRAAL DOCUMENTEN- & BEWIJZENOVERZICHT (Parallellogram Vorm 2: Koel Slate Grijs) -->
+      <section id="documenten" class="parallelogram-section section-bg-slate documents-section">
+        <div class="content-wrapper section-content-wrapper">
+          <div class="container">
+            <div class="section-header">
+              <span class="section-tag">Centraal Documenten- & Bewijzenoverzicht</span>
+              <h2 class="section-title">Documenten, Repositories & Externe Bewijslast</h2>
+              <p class="section-subtitle">
+                Directe en centrale toegang tot alle onderzoeksrapporten (OneDrive PDF), Python code repositories (GitHub), prototypes (Vercel) en demo video's (YouTube) per story en sprint.
+              </p>
+            </div>
+
+            <!-- Centraal Documenten- & Bewijzenoverzicht voor Docenten & Assessoren -->
+            <div class="dashboard-files-hub" id="dashboard-files-hub">
+              <div class="files-hub-header">
+                <div class="files-hub-title-wrap">
+                  <div class="files-hub-icon">📁</div>
+                  <div>
+                    <h3 class="files-hub-title">Centrale Bewijzenbibliotheek</h3>
+                    <p class="files-hub-sub">
+                      Ieder bewijsstuk dat bij een story wordt gekoppeld, verschijnt automatisch in dit centrale overzicht met vermelding van de bijbehorende story, leeruitkomsten en sprint.
+                    </p>
+                  </div>
+                </div>
+                <div class="files-hub-actions">
+                  <span class="files-hub-count-badge" id="files-hub-count">0 bestanden gekoppeld</span>
+                  <button class="btn-dash primary" id="btn-hub-add-link" style="padding: 0.45rem 0.85rem; font-size: 0.8rem;">
+                    <span>+ Bestand Toevoegen</span>
+                  </button>
+                </div>
+              </div>
+
+              <!-- Dynamische Bestandenlijst (via script.js) -->
+              <div class="files-hub-body" id="files-hub-content">
+                <!-- Dynamisch gevuld met alle bestanden uit alle stories -->
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- 3. DE LEERUITKOMSTEN (Parallellogram Vorm 3: Wit) -->
+      <section id="leeruitkomsten" class="parallelogram-section section-bg-white">
+        <div class="content-wrapper section-content-wrapper">
+          <div class="container">
+            <div class="section-header">
+              <span class="section-tag">Doelen & Kwalificaties</span>
+              <h2 class="section-title">De 5 Leeruitkomsten (LU's)</h2>
+              <p class="section-subtitle">
+                Tijdens deze minor werk ik gestructureerd aan vijf centrale leeruitkomsten. Elk bewijsstuk in mijn portfolio is gekoppeld aan één of meerdere van deze doelen.
+              </p>
+            </div>
+
+          <div class="lu-grid">
+            <!-- LU 1 Card -->
+            <div class="lu-card clickable-lu-card" id="card-lu-1" data-target-lu="LU 1" tabindex="0" role="button" aria-label="Filter bewijzen voor Leeruitkomst 1: Impact op Beroepspraktijk">
+              <div class="lu-top-row">
+                <span class="lu-badge">LU 1</span>
+                <span class="lu-score-badge" id="lu-score-badge-1">0 / 2 pt</span>
+              </div>
+              <h3 class="lu-title">Impact op Beroepspraktijk</h3>
+              <p class="lu-description">
+                AI-impact op de beroepspraktijk analyseren en evalueren: onderzoeken van kansen, bedreigingen en de veranderende rol van de finance professional.
+              </p>
+              
+              <!-- Progress Bar -->
+              <div class="lu-progress-wrapper">
+                <div class="lu-progress-track">
+                  <div class="lu-progress-bar" id="lu-progress-bar-1" style="width: 0%;"></div>
+                </div>
+                <div class="lu-progress-stats">
+                  <span id="lu-status-text-1" class="lu-status-text">Nog te behalen (2 pt)</span>
+                  <span id="lu-percent-1" class="lu-percent-text">0%</span>
+                </div>
+              </div>
+
+              <div class="lu-card-footer">
+                <span class="lu-stories-count" id="lu-stories-count-1">0 stories gekoppeld</span>
+                <button class="lu-filter-btn" data-target-lu="LU 1">
+                  <span>Toon bewijzen</span>
+                  <span>→</span>
+                </button>
+              </div>
+            </div>
+
+            <!-- LU 2 Card -->
+            <div class="lu-card clickable-lu-card" id="card-lu-2" data-target-lu="LU 2" tabindex="0" role="button" aria-label="Filter bewijzen voor Leeruitkomst 2: Praktijkgerichte Oplossing">
+              <div class="lu-top-row">
+                <span class="lu-badge">LU 2</span>
+                <span class="lu-score-badge" id="lu-score-badge-2">0 / 4 pt</span>
+              </div>
+              <h3 class="lu-title">Praktijkgerichte Oplossing</h3>
+              <p class="lu-description">
+                Praktijkgerichte AI oplossing ontwerpen, realiseren en presenteren: bouwen van een concreet werkend prototype dat een financieel knelpunt verhelpt.
+              </p>
+              
+              <!-- Progress Bar -->
+              <div class="lu-progress-wrapper">
+                <div class="lu-progress-track">
+                  <div class="lu-progress-bar" id="lu-progress-bar-2" style="width: 0%;"></div>
+                </div>
+                <div class="lu-progress-stats">
+                  <span id="lu-status-text-2" class="lu-status-text">Nog te behalen (4 pt)</span>
+                  <span id="lu-percent-2" class="lu-percent-text">0%</span>
+                </div>
+              </div>
+
+              <div class="lu-card-footer">
+                <span class="lu-stories-count" id="lu-stories-count-2">0 stories gekoppeld</span>
+                <button class="lu-filter-btn" data-target-lu="LU 2">
+                  <span>Toon bewijzen</span>
+                  <span>→</span>
+                </button>
+              </div>
+            </div>
+
+            <!-- LU 3 Card -->
+            <div class="lu-card clickable-lu-card" id="card-lu-3" data-target-lu="LU 3" tabindex="0" role="button" aria-label="Filter bewijzen voor Leeruitkomst 3: Ethiek & Verantwoord AI">
+              <div class="lu-top-row">
+                <span class="lu-badge">LU 3</span>
+                <span class="lu-score-badge" id="lu-score-badge-3">0 / 2 pt</span>
+              </div>
+              <h3 class="lu-title">Ethiek & Verantwoord AI</h3>
+              <p class="lu-description">
+                Ethiek en verantwoordelijk AI-gebruik beoordelen: data privacy, AVG/GDPR compliance, geanonimiseerde data en transparante besluitvorming.
+              </p>
+              
+              <!-- Progress Bar -->
+              <div class="lu-progress-wrapper">
+                <div class="lu-progress-track">
+                  <div class="lu-progress-bar" id="lu-progress-bar-3" style="width: 0%;"></div>
+                </div>
+                <div class="lu-progress-stats">
+                  <span id="lu-status-text-3" class="lu-status-text">Nog te behalen (2 pt)</span>
+                  <span id="lu-percent-3" class="lu-percent-text">0%</span>
+                </div>
+              </div>
+
+              <div class="lu-card-footer">
+                <span class="lu-stories-count" id="lu-stories-count-3">0 stories gekoppeld</span>
+                <button class="lu-filter-btn" data-target-lu="LU 3">
+                  <span>Toon bewijzen</span>
+                  <span>→</span>
+                </button>
+              </div>
+            </div>
+
+            <!-- LU 4 Card -->
+            <div class="lu-card clickable-lu-card" id="card-lu-4" data-target-lu="LU 4" tabindex="0" role="button" aria-label="Filter bewijzen voor Leeruitkomst 4: AI Tools & Technieken">
+              <div class="lu-top-row">
+                <span class="lu-badge">LU 4</span>
+                <span class="lu-score-badge" id="lu-score-badge-4">0 / 4 pt</span>
+              </div>
+              <h3 class="lu-title">AI Tools & Technieken</h3>
+              <p class="lu-description">
+                AI Tools en technieken effectief gebruiken: prompt engineering, API-koppelingen, n8n/Make workflows en snelle webinterfaces (Vibe-coding).
+              </p>
+              
+              <!-- Progress Bar -->
+              <div class="lu-progress-wrapper">
+                <div class="lu-progress-track">
+                  <div class="lu-progress-bar" id="lu-progress-bar-4" style="width: 0%;"></div>
+                </div>
+                <div class="lu-progress-stats">
+                  <span id="lu-status-text-4" class="lu-status-text">Nog te behalen (4 pt)</span>
+                  <span id="lu-percent-4" class="lu-percent-text">0%</span>
+                </div>
+              </div>
+
+              <div class="lu-card-footer">
+                <span class="lu-stories-count" id="lu-stories-count-4">0 stories gekoppeld</span>
+                <button class="lu-filter-btn" data-target-lu="LU 4">
+                  <span>Toon bewijzen</span>
+                  <span>→</span>
+                </button>
+              </div>
+            </div>
+
+            <!-- LU 5 Card -->
+            <div class="lu-card clickable-lu-card" id="card-lu-5" data-target-lu="LU 5" tabindex="0" role="button" aria-label="Filter bewijzen voor Leeruitkomst 5: Zelfstandig & Zelfsturend">
+              <div class="lu-top-row">
+                <span class="lu-badge">LU 5</span>
+                <span class="lu-score-badge" id="lu-score-badge-5">0 / 6 pt</span>
+              </div>
+              <h3 class="lu-title">Zelfstandig & Zelfsturend</h3>
+              <p class="lu-description">
+                Zelfstandig en zelfsturend werken: gestructureerd agile plannen in sprints, feedback integreren, reflecteren en professioneel versiebeheer via GitHub.
+              </p>
+              
+              <!-- Progress Bar -->
+              <div class="lu-progress-wrapper">
+                <div class="lu-progress-track">
+                  <div class="lu-progress-bar" id="lu-progress-bar-5" style="width: 0%;"></div>
+                </div>
+                <div class="lu-progress-stats">
+                  <span id="lu-status-text-5" class="lu-status-text">Nog te behalen (6 pt)</span>
+                  <span id="lu-percent-5" class="lu-percent-text">0%</span>
+                </div>
+              </div>
+
+              <div class="lu-card-footer">
+                <span class="lu-stories-count" id="lu-stories-count-5">0 stories gekoppeld</span>
+                <button class="lu-filter-btn" data-target-lu="LU 5">
+                  <span>Toon bewijzen</span>
+                  <span>→</span>
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      </section>
+
+      <!-- 4. SPRINT MATRIX & ASSESSMENT SCORE (Parallellogram Vorm 4: Zacht Lichtgrijs) -->
+      <section id="voortgang" class="parallelogram-section section-bg-surface">
+        <div class="content-wrapper section-content-wrapper">
+          <div class="container">
+            <div class="section-header">
+              <span class="section-tag">Voortgangsbewaking</span>
+              <h2 class="section-title">Sprint Matrix & Assessment Score</h2>
+              <p class="section-subtitle">
+                Overzicht van de doelstellingen en fysiek behaalde voldoendes van docenten over Sprint 1 t/m 8 (totaal doel: 18 voldoendes).
+              </p>
+            </div>
+
+          <!-- Admin Toolbar voor Handmatige Beoordeling & LocalStorage Beheer -->
+          <div class="matrix-admin-toolbar" id="matrix-admin-toolbar">
+            <!-- Dynamisch gevuld via script.js op basis van isAdminMode -->
+          </div>
+
+          <div class="matrix-container">
+            <table class="matrix-table" aria-label="Sprint Voortgangstabel">
+              <thead>
+                <tr>
+                  <th scope="col" style="min-width: 140px;">Leeruitkomst</th>
+                  <th scope="col" style="width: 50px;">Doel</th>
+                  <th scope="col" style="width: 65px;">Behaald</th>
+                  <th scope="col" class="sprint-col sprint-col-1">Sprint 1</th>
+                  <th scope="col" class="sprint-col sprint-col-2">Sprint 2</th>
+                  <th scope="col" class="sprint-col sprint-col-3">Sprint 3</th>
+                  <th scope="col" class="sprint-col sprint-col-4">Sprint 4</th>
+                  <th scope="col" class="sprint-col sprint-col-5">Sprint 5</th>
+                  <th scope="col" class="sprint-col sprint-col-6">Sprint 6</th>
+                  <th scope="col" class="sprint-col sprint-col-7">Sprint 7</th>
+                  <th scope="col" class="sprint-col sprint-col-8">Sprint 8</th>
+                </tr>
+              </thead>
+              <tbody id="matrix-table-body">
+                <!-- Dynamisch gevuld en interactief via script.js met LocalStorage synchronisatie -->
+              </tbody>
+            </table>
+          </div>
+
+          <!-- Real-time Voortgangskaart met Live Voortgangsbalk die direct meebeweegt -->
+          <div class="matrix-realtime-card" id="matrix-realtime-card">
+            <div class="matrix-realtime-top">
+              <div class="matrix-realtime-title-group">
+                <span class="matrix-realtime-icon">🎯</span>
+                <div>
+                  <h3 class="matrix-realtime-title">Real-time Voortgang Voldoendes</h3>
+                  <p class="matrix-realtime-sub">Direct gesynchroniseerd met je fysieke beoordelingen in de bovenstaande tabel</p>
+                </div>
+              </div>
+              <div class="matrix-realtime-score-box">
+                <span class="matrix-realtime-score" id="matrix-progress-score-num">0</span>
+                <span class="matrix-realtime-max">/ 18 Voldoendes</span>
+                <span class="matrix-realtime-pill" id="matrix-progress-percent-pill">0%</span>
+              </div>
+            </div>
+            
+            <div class="matrix-progress-track" aria-label="Voortgangsbalk beoordelingen">
+              <div class="matrix-progress-bar-fill" id="matrix-progress-bar-fill" style="width: 0%;"></div>
+            </div>
+
+            <div class="matrix-realtime-bottom">
+              <span class="matrix-realtime-status-text" id="matrix-progress-status-desc">Nog geen voldoendes toegekend</span>
+              <a href="#dashboard" class="matrix-jump-dashboard-link">Bekijk Ronde Meter op Dashboard ↑</a>
+            </div>
+          </div>
+
+          <div class="progress-summary">
+            <div class="metric-box">
+              <div class="metric-value">18</div>
+              <div class="metric-label">Totaal Doel Voldoendes</div>
+            </div>
+            <div class="metric-box">
+              <div class="metric-value" id="matrix-total-achieved" style="color: #10b981;">0</div>
+              <div class="metric-label">Reeds Behaald (Actueel)</div>
+            </div>
+            <div class="metric-box">
+              <div class="metric-value" id="matrix-current-sprint" style="color: var(--accent-primary);">Sprint 1</div>
+              <div class="metric-label">Huidige Actieve Sprint</div>
+            </div>
+          </div>
+        </div>
+      </div>
+      </section>
+
+      <!-- 5. INTERACTIEVE SPRINT TIMELINE (Parallellogram Vorm 5: Wit) -->
+      <section id="timeline" class="parallelogram-section section-bg-white timeline-section">
+        <div class="content-wrapper section-content-wrapper">
+          <div class="container">
+            <div class="section-header">
+              <span class="section-tag">2-Wekelijkse Sprint Cyclus</span>
+              <h2 class="section-title">Interactieve Sprint Timeline</h2>
+              <p class="section-subtitle">
+                Elke sprint duurt precies 2 weken en bevat 3 tot 5 gerichte stories (Research Stories & User Stories) met concrete acceptatie- en kwaliteitscriteria. Klik op een sprint of gebruik de pijltjes om vooruit of terug te navigeren.
+              </p>
+            </div>
+
+          <!-- Timeline Navigatie Balk -->
+          <div class="timeline-nav-bar">
+            <button id="timeline-prev-btn" class="timeline-nav-arrow" aria-label="Vorige sprint" title="Ga naar de vorige sprint (2 weken eerder)">
+              <span class="nav-arrow-icon">←</span>
+              <span class="nav-arrow-text">Vorige Sprint</span>
+            </button>
+
+            <!-- Sprint Pills Nodes Track -->
+            <div class="timeline-steps-track" id="timeline-steps-track" role="tablist" aria-label="Kies een sprint">
+              <!-- Dynamically populated via script.js -->
+            </div>
+
+            <button id="timeline-next-btn" class="timeline-nav-arrow" aria-label="Volgende sprint" title="Ga naar de volgende sprint (2 weken vooruit)">
+              <span class="nav-arrow-text">Volgende Sprint</span>
+              <span class="nav-arrow-icon">→</span>
+            </button>
+          </div>
+
+          <!-- Counter Indicator & Keyboard Hint -->
+          <div class="timeline-status-indicator-row">
+            <span class="timeline-counter-badge" id="timeline-sprint-counter">Sprint 1 van 8 (2 weken)</span>
+            <span class="timeline-key-hint">💡 Tip: Gebruik links/rechts pijltjestoetsen op je toetsenbord om door de sprints te bladeren.</span>
+          </div>
+
+          <!-- Active Sprint Container: Banner + 3-5 Stories Grid -->
+          <div id="active-sprint-view" class="active-sprint-view">
+            <!-- Dynamically populated by script.js -->
+          </div>
+        </div>
+      </div>
+      </section>
+
+      <!-- 6. PROJECTEN & STORIES (Parallellogram Vorm 6: Koel Slate Grijs) -->
+      <section id="projecten" class="parallelogram-section section-bg-slate">
+        <div class="content-wrapper section-content-wrapper">
+          <div class="container">
+            <div class="section-header">
+              <span class="section-tag">Bewijslast & Stories</span>
+              <h2 class="section-title">Projecten & Stories (Mijn Bewijzen)</h2>
+              <p class="section-subtitle">
+                Gefilterd overzicht van al mijn Research Stories (RS), User Stories (US) en Learning Stories (LS), inclusief koppelingen naar LU's, acceptatiecriteria, kwaliteitscriteria en externe documenten.
+              </p>
+            </div>
+
+          <!-- Filter & Search Controls -->
+          <div class="filter-bar-container">
+            <!-- Search Bar -->
+            <div class="search-input-wrapper">
+              <span class="search-icon">🔍</span>
+              <input type="text" id="search-stories-input" class="search-input" placeholder="Zoek op trefwoord (bijv. Celonis, Process Mining, LU 1, n8n, Vercel)..." aria-label="Zoek in bewijzen en stories">
+            </div>
+
+            <!-- Filter on LU -->
+            <div class="filters-group">
+              <span class="filter-label">Filter op Leeruitkomst:</span>
+              <div class="filter-pills" id="lu-filter-pills">
+                <button class="filter-btn active" data-lu-filter="all">Alle LU's</button>
+                <button class="filter-btn" data-lu-filter="LU 1">LU 1 (Impact)</button>
+                <button class="filter-btn" data-lu-filter="LU 2">LU 2 (Oplossing)</button>
+                <button class="filter-btn" data-lu-filter="LU 3">LU 3 (Ethiek)</button>
+                <button class="filter-btn" data-lu-filter="LU 4">LU 4 (Tools)</button>
+                <button class="filter-btn" data-lu-filter="LU 5">LU 5 (Zelfsturing)</button>
+              </div>
+            </div>
+
+            <!-- Filter on Story Type (Research, User & Learning Stories) -->
+            <div class="filters-group">
+              <span class="filter-label">Filter op Type:</span>
+              <div class="filter-pills" id="type-filter-pills">
+                <button class="filter-btn active" data-type-filter="all">Alle Types</button>
+                <button class="filter-btn" data-type-filter="RS">Research Stories (RS)</button>
+                <button class="filter-btn" data-type-filter="US">User Stories (US)</button>
+                <button class="filter-btn" data-type-filter="LS">Learning Stories (LS)</button>
+              </div>
+            </div>
+
+            <!-- Filter status & reset -->
+            <div class="filter-status-row">
+              <span id="filtered-count">5 van de 5 bewijzen getoond</span>
+              <button id="reset-filter-btn" class="reset-filter-btn">Reset alle filters</button>
+            </div>
+          </div>
+
+          <!-- Stories Grid rendered dynamically by script.js -->
+          <div class="stories-grid" id="stories-container">
+            <!-- Dynamically populated via JavaScript -->
+          </div>
+        </div>
+      </div>
+      </section>
+
+      <!-- 7. CONTACT & EXTERNE LINKS (Parallellogram Vorm 7: Zachte Donkere Accentkleur) -->
+      <section id="contact" class="parallelogram-section section-bg-dark">
+        <div class="content-wrapper section-content-wrapper">
+          <div class="container">
+            <div class="section-header">
+              <span class="section-tag">Samenwerken & Toetsing</span>
+              <h2 class="section-title">Contact & Externe Links</h2>
+              <p class="section-subtitle">
+                Directe kanalen om mijn code repositories, cloud documentatie en live deployments te verifiëren.
+              </p>
+            </div>
+
+          <div class="contact-grid">
+            <div class="contact-card">
+              <h3 style="font-size: 1.25rem; font-weight: 700; color: var(--text-primary); margin-bottom: 0.5rem;">
+                Kom in contact met Luc Meijerink
+              </h3>
+              <p style="color: var(--text-secondary); font-size: 0.95rem; line-height: 1.6;">
+                Vragen over mijn onderzoek naar process mining, AI-automatisering of toetsingsdossier? Neem gerust direct contact op via onderstaande kanalen.
+              </p>
+
+              <div class="contact-channels">
+                <a href="mailto:luc.meijerink@student.hu.nl" class="channel-item">
+                  <div class="channel-icon">✉️</div>
+                  <div class="channel-info">
+                    <h4>E-mail</h4>
+                    <p>luc.meijerink@student.hu.nl</p>
+                  </div>
+                </a>
+
+                <a href="https://www.linkedin.com/in/luc-meijerink-16106b217/" target="_blank" rel="noopener noreferrer" class="channel-item">
+                  <div class="channel-icon">👔</div>
+                  <div class="channel-info">
+                    <h4>LinkedIn Profiel</h4>
+                    <p>linkedin.com/in/luc-meijerink-16106b217/ (Netwerk & Connecties)</p>
+                  </div>
+                </a>
+
+                <a href="https://github.com/lucmeijerink" target="_blank" rel="noopener noreferrer" class="channel-item">
+                  <div class="channel-icon">💻</div>
+                  <div class="channel-info">
+                    <h4>GitHub Repositories</h4>
+                    <p>github.com/lucmeijerink (Versiebeheer & Commits)</p>
+                  </div>
+                </a>
+
+                <a href="https://vercel.com" target="_blank" rel="noopener noreferrer" class="channel-item">
+                  <div class="channel-icon">▲</div>
+                  <div class="channel-info">
+                    <h4>Vercel Deployments</h4>
+                    <p>Live gehoste web applicaties en prototypes</p>
+                  </div>
+                </a>
+              </div>
+            </div>
+
+            <!-- Vanilla Code Architecture Card -->
+            <div class="code-export-box">
+              <h3 style="font-size: 1.25rem; font-weight: 700; color: var(--text-primary); margin-bottom: 0.5rem;">
+                Technische Specificatie & Vercel
+              </h3>
+              <p class="code-export-intro">
+                Conform het assessmentdocument (Kwaliteitscriteria pagina 7) is dit portfolio 100% gebouwd met schone W3C-conforme <strong>Vanilla HTML5, CSS3 en JavaScript</strong> zonder onnodig zware frameworks.
+              </p>
+
+              <div class="code-file-list">
+                <div class="file-row">
+                  <span>📄 index.html</span>
+                  <span class="file-badge">HTML5 Semantiek & Dashboard</span>
+                </div>
+                <div class="file-row">
+                  <span>🎨 style.css</span>
+                  <span class="file-badge">CSS3 Custom Props & Dark Mode</span>
+                </div>
+                <div class="file-row">
+                  <span>⚡ script.js</span>
+                  <span class="file-badge">Vanilla JS + LocalStorage + Timeline</span>
+                </div>
+              </div>
+
+              <div style="margin-top: auto; padding-top: 1rem; border-top: 1px solid var(--border-subtle);">
+                <p style="font-size: 0.8rem; color: var(--text-muted); line-height: 1.5;">
+                  ✓ Grote bestanden (video's, pdf's) extern gehost via OneDrive & YouTube.<br>
+                  ✓ Instellingen & filters bewaard in browser LocalStorage.<br>
+                  ✓ Klaar voor directe push naar GitHub en Vercel deployment.
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      </section>
+
+      <!-- Formeel Assessment Print-Footer (Alleen zichtbaar bij afdrukken / PDF-export) -->
+      <div class="print-assessment-footer" id="print-assessment-footer" aria-hidden="true">
+        <span>Luc Meijerink • Finance & Control • Minor Future-proof met AI!</span>
+        <span>Portfolio Assessmentrapport • Gegenereerd via Luc Meijerink AI Dashboard</span>
+      </div>
+    </main>
+
+    <!-- Site Footer (Parallellogram Sluitstuk) -->
+    <footer class="site-footer parallelogram-footer">
+      <div class="container footer-content">
+        <div>
+          <div class="footer-brand">Luc Meijerink • Portfolio Dashboard Minor "Future-proof met AI!"</div>
+          <div class="footer-meta">Student Finance & Control (21 jaar) • Getoetst op W3C standaarden & Mobile-first design</div>
+        </div>
+        <div class="footer-links">
+          <a href="#dashboard" class="nav-link">Naar boven ↑</a>
+        </div>
+      </div>
+    </footer>
+
+    <!-- Story Details Modal -->
+    <div id="story-detail-modal" class="modal-backdrop" role="dialog" aria-modal="true" aria-labelledby="modal-title">
+      <div class="modal-dialog">
+        <button id="modal-close-btn" class="modal-close-btn" aria-label="Sluit dialoogvenster">✕</button>
+        <div id="modal-dynamic-body">
+          <!-- Dynamically populated by script.js -->
+        </div>
+      </div>
+    </div>
+
+    <!-- Admin: Add Story Modal -->
+    <div id="add-story-modal" class="modal-backdrop" role="dialog" aria-modal="true" aria-labelledby="add-story-modal-title">
+      <div class="modal-dialog">
+        <button id="add-story-close-btn" class="modal-close-btn" aria-label="Sluit dialoogvenster">✕</button>
+        <div class="modal-header">
+          <div class="modal-badges">
+            <span class="story-type-badge us">Luc Admin Tool</span>
+            <span class="story-sprint-badge" id="modal-target-sprint-badge">Sprint 2</span>
+          </div>
+          <h2 class="modal-title" id="add-story-modal-title">Nieuwe Story Toevoegen</h2>
+          <p style="font-size: 0.85rem; color: var(--text-muted); margin-top: 0.25rem;">
+            Maak een nieuwe Research Story (RS), User Story (US) of Learning Story (LS) aan voor deze sprint.
+          </p>
+        </div>
+
+        <form id="add-story-form" class="admin-modal-form">
+          <input type="hidden" id="form-sprint-index" value="1">
+          
+          <div class="form-row-2">
+            <div class="form-group">
+              <label for="form-story-type">Type Story:</label>
+              <select id="form-story-type" class="admin-select" required>
+                <option value="RS">Research Story (RS - Onderzoek)</option>
+                <option value="US">User Story (US - Praktijk/Software)</option>
+                <option value="LS">Learning Story (LS - Persoonlijke Ontwikkeling & Kennis)</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label for="form-story-code">Story Code:</label>
+              <input type="text" id="form-story-code" class="admin-input" placeholder="bijv. RS-04, US-03 of LS-01" required>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label for="form-story-title">Titel van de Story:</label>
+            <input type="text" id="form-story-title" class="admin-input" placeholder="bijv. Power Automate Factuurverwerking Prototype" required>
+          </div>
+
+          <div class="form-group">
+            <label for="form-story-formula">User / Learning Story Formule:</label>
+            <textarea id="form-story-formula" class="admin-textarea" rows="2" placeholder="Als student wil ik ... zodat ..." required></textarea>
+          </div>
+
+          <div class="form-group">
+            <label>Gekoppelde Leeruitkomsten (kies één of meer):</label>
+            <div class="lu-checkbox-group">
+              <label class="checkbox-label"><input type="checkbox" name="story-lu" value="LU 1"> <span>LU 1 (AI-Impact)</span></label>
+              <label class="checkbox-label"><input type="checkbox" name="story-lu" value="LU 2"> <span>LU 2 (Oplossing)</span></label>
+              <label class="checkbox-label"><input type="checkbox" name="story-lu" value="LU 3"> <span>LU 3 (Ethiek)</span></label>
+              <label class="checkbox-label"><input type="checkbox" name="story-lu" value="LU 4"> <span>LU 4 (Tools)</span></label>
+              <label class="checkbox-label"><input type="checkbox" name="story-lu" value="LU 5"> <span>LU 5 (Zelfsturing)</span></label>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label for="form-story-status">Aanvangsstatus:</label>
+            <select id="form-story-status" class="admin-select" required>
+              <option value="planned">📅 Gepland</option>
+              <option value="progress">⏳ In uitvoering</option>
+              <option value="review">📋 Afgerond / Ter review</option>
+              <option value="completed">✓ Behaald (V)</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label for="form-story-acceptatie">Acceptatiecriteria (één regel per criterium):</label>
+            <textarea id="form-story-acceptatie" class="admin-textarea" rows="3" placeholder="1. Criterium 1&#10;2. Criterium 2"></textarea>
+          </div>
+
+          <div class="form-group">
+            <label for="form-story-kwaliteit">Kwaliteitscriteria (één regel per criterium):</label>
+            <textarea id="form-story-kwaliteit" class="admin-textarea" rows="3" placeholder="1. Kwaliteitsnorm 1&#10;2. Kwaliteitsnorm 2"></textarea>
+          </div>
+
+          <div class="modal-form-actions">
+            <button type="button" class="btn-modal secondary" id="btn-cancel-add-story">Annuleren</button>
+            <button type="submit" class="btn-modal primary">Story Toevoegen & Opslaan</button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <!-- Admin: Add Link / Bestand Modal -->
+    <div id="add-link-modal" class="modal-backdrop" role="dialog" aria-modal="true" aria-labelledby="add-link-modal-title">
+      <div class="modal-dialog" style="max-width: 520px;">
+        <button id="add-link-close-btn" class="modal-close-btn" aria-label="Sluit dialoogvenster">✕</button>
+        <div class="modal-header">
+          <div class="modal-badges">
+            <span class="story-type-badge us">Bewijslast Toevoegen</span>
+            <span class="story-sprint-badge" id="modal-link-story-code">Story Code</span>
+          </div>
+          <h2 class="modal-title" id="add-link-modal-title">Bestand of Link Toevoegen</h2>
+          <p style="font-size: 0.85rem; color: var(--text-muted); margin-top: 0.25rem;" id="modal-link-story-title">
+            Koppel een extern bewijsstuk aan deze story.
+          </p>
+        </div>
+
+        <form id="add-link-form" class="admin-modal-form">
+          <input type="hidden" id="form-link-story-id" value="">
+
+          <div class="form-group" id="form-link-story-select-group">
+            <label for="form-link-story-select">Koppel aan Story & Sprint:</label>
+            <select id="form-link-story-select" class="admin-select" required>
+              <!-- Dynamisch gevuld met alle stories -->
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label for="form-link-type">Type Externe Koppeling / Bestand:</label>
+            <select id="form-link-type" class="admin-select" required>
+              <option value="onedrive">OneDrive (Document, PDF of Excel)</option>
+              <option value="github">GitHub (Repository of Commit)</option>
+              <option value="vercel">Vercel (Live Web Applicatie / Prototype)</option>
+              <option value="youtube">YouTube (Video Demo of Presentatie)</option>
+              <option value="other">Overig / Cloud Link</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label for="form-link-label">Titel / Bestandsnaam van het bewijs:</label>
+            <input type="text" id="form-link-label" class="admin-input" placeholder="bijv. Onderzoeksrapport PDF of Celonis Procesmodel" required>
+          </div>
+
+          <div class="form-group">
+            <label for="form-link-url">URL / Weblink (OneDrive, GitHub, etc.):</label>
+            <input type="url" id="form-link-url" class="admin-input" placeholder="https://onedrive.live.com/... of https://github.com/..." required>
+          </div>
+
+          <div class="form-group">
+            <label for="form-link-note">Korte toelichting / bewijsstatus:</label>
+            <input type="text" id="form-link-note" class="admin-input" placeholder="bijv. Definitief rapport v1.2 (PDF)">
+          </div>
+
+          <div class="modal-form-actions">
+            <button type="button" class="btn-modal secondary" id="btn-cancel-add-link">Annuleren</button>
+            <button type="submit" class="btn-modal primary">Bestand / Link Toevoegen</button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <!-- QR-Code Modal (Vergrote weergave voor assessoren & docenten tijdens fysieke gesprekken) -->
+    <div id="qr-code-modal" class="modal-backdrop" role="dialog" aria-modal="true" aria-labelledby="qr-modal-title">
+      <div class="modal-dialog qr-modal-dialog">
+        <button id="qr-modal-close-btn" class="modal-close-btn" aria-label="Sluit QR dialoogvenster">✕</button>
+        <div class="modal-header" style="text-align: center; justify-content: center;">
+          <div class="modal-badges" style="justify-content: center;">
+            <span class="story-type-badge us">Fysieke Toetsing</span>
+            <span class="story-sprint-badge">Assessoren & Docenten</span>
+          </div>
+          <h2 class="modal-title" id="qr-modal-title">Scan Digitaal Portfolio</h2>
+          <p style="font-size: 0.85rem; color: var(--text-muted); margin-top: 0.25rem; max-width: 380px; margin-inline: auto;">
+            Scan deze QR-code met de camera van een telefoon of tablet om dit portfolio direct te openen en live te volgen tijdens het assessment.
+          </p>
+        </div>
+
+        <div class="qr-modal-body">
+          <div class="qr-modal-frame">
+            <img id="qr-modal-large-img" src="" alt="Vergrote QR-code Portfolio Luc Meijerink" class="qr-modal-img" width="210" height="210" />
+            <div class="qr-modal-badge">
+              <span>📱 Scan met smartphone camera</span>
+            </div>
+          </div>
+
+          <div class="qr-modal-url-group">
+            <label for="qr-portfolio-url-input" class="qr-url-label">Directe URL naar portfolio:</label>
+            <div class="qr-url-input-wrap">
+              <input type="text" id="qr-portfolio-url-input" class="admin-input" readonly value="" />
+              <button type="button" class="btn-dash primary" id="btn-copy-portfolio-url" title="Kopieer link naar klembord">
+                Kopieer URL
+              </button>
+            </div>
+          </div>
+
+          <div class="qr-modal-links-row">
+            <a id="qr-modal-open-newtab" href="#" target="_blank" rel="noopener noreferrer" class="social-btn" title="Open portfolio in nieuw tabblad">
+              <span>Open in nieuw tabblad</span>
+              <span class="btn-arrow">↗</span>
+            </a>
+            <a id="qr-modal-download-btn" href="#" download="portfolio-qr-luc-meijerink.png" class="social-btn" title="Download QR-code als PNG">
+              <span>Download QR (PNG)</span>
+              <span class="btn-arrow">↓</span>
+            </a>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Admin Verificatie Modal (Uitsluitend voor Luc op zijn pc) -->
+    <div id="admin-auth-modal" class="modal-backdrop" role="dialog" aria-modal="true" aria-labelledby="admin-auth-title">
+      <div class="modal-dialog modal-dialog-sm admin-auth-dialog">
+        <button id="admin-auth-close-btn" class="modal-close-btn" aria-label="Sluit verificatie venster">✕</button>
+        <div class="modal-header">
+          <div class="modal-badges">
+            <span class="story-type-badge rs">Beveiliging</span>
+            <span class="story-sprint-badge">Luc Meijerink</span>
+          </div>
+          <h2 class="modal-title" id="admin-auth-title">🔒 Beheerdersverificatie</h2>
+          <p class="modal-subtitle">
+            Beheerdersfuncties (stories bewerken, statussen muteren en bewijslinks toevoegen) zijn beveiligd en alleen toegankelijk voor Luc Meijerink op zijn geautoriseerde werkstation.
+          </p>
+        </div>
+
+        <form id="admin-auth-form" class="modal-form">
+          <div class="form-group">
+            <label for="admin-pin-input">Beheerderscode / Pincode:</label>
+            <input type="password" id="admin-pin-input" class="admin-input" placeholder="Voer pincode of wachtwoord in" required autocomplete="current-password" autofocus />
+            <span id="admin-auth-error" class="admin-auth-error-msg" style="display: none;">
+              ⚠️ Onjuiste code. Toegang tot beheerdersmodus geweigerd.
+            </span>
+          </div>
+
+          <div class="form-group-checkbox" style="margin-top: 0.5rem; margin-bottom: 1.25rem;">
+            <label class="custom-checkbox-label">
+              <input type="checkbox" id="admin-remember-device" checked />
+              <span>Onthoud deze PC als mijn geautoriseerde beheerapparaat</span>
+            </label>
+          </div>
+
+          <div class="modal-form-actions">
+            <button type="button" class="btn-modal secondary" id="admin-auth-cancel-btn">Annuleren</button>
+            <button type="submit" class="btn-modal primary">Ontgrendel Admin Modus</button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <!-- Pure Vanilla JS Entry Point -->
+    <script type="module" src="/script.js"></script>
+  </body>
+</html>

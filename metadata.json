@@ -1,0 +1,6 @@
+{
+  "name": "Luc Meijerink - Portfolio AI Minor",
+  "description": "Persoonlijke portfolio website van Luc Meijerink (Finance & Control) voor de minor Future-proof met AI!, met bewijzen voor alle leeruitkomsten (LU 1 t/m 5).",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
