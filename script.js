@@ -1,5 +1,7 @@
 import QRCode from "qrcode";
 
+import { createClient } from "@supabase/supabase-js";
+
 /**
  * Luc Meijerink - Portfolio "Future-proof met AI!"
  * Pure Vanilla JavaScript (ES6+)
@@ -2055,7 +2057,7 @@ function renderDashboardFilesHub() {
   });
 }
 
-// 15. Navigatie, Mobiel Profielmenu (Drawer) & Scroll Spy
+// 15. Navigatie, Mobiel Profielmenu (Drawer) & Paginaweergave
 function initNavigation() {
   const mobileToggle = document.getElementById("mobile-nav-toggle") || document.getElementById("mobile-menu-toggle");
   const mobileDrawer = document.getElementById("mobile-nav-drawer");
@@ -2117,22 +2119,25 @@ function initNavigation() {
     });
   }
 
-  const sections = document.querySelectorAll("section[id]");
-  window.addEventListener("scroll", () => {
-    const scrollY = window.pageYOffset;
-    sections.forEach(current => {
-      const sectionHeight = current.offsetHeight;
-      const sectionTop = current.offsetTop - 100;
-      const sectionId = current.getAttribute("id");
-      const navLinks = document.querySelectorAll(`.nav-link[href="#${sectionId}"]`);
+  const visiblePageIds = ["dashboard", "over-mij", "documenten", "leeruitkomsten", "timeline", "contact"];
 
-      if (scrollY > sectionTop && scrollY <= sectionTop + sectionHeight) {
-        navLinks.forEach(link => link.classList.add("active"));
-      } else {
-        navLinks.forEach(link => link.classList.remove("active"));
-      }
+  function showPageFromHash() {
+    const requestedPage = window.location.hash.slice(1);
+    const activePageId = visiblePageIds.includes(requestedPage) ? requestedPage : "dashboard";
+
+    document.querySelectorAll(".page-view").forEach(page => {
+      page.classList.toggle("is-active", page.id === activePageId);
     });
-  });
+
+    document.querySelectorAll(".nav-link").forEach(link => {
+      link.classList.toggle("active", link.getAttribute("href") === `#${activePageId}`);
+    });
+
+    window.scrollTo({ top: 0, behavior: "auto" });
+  }
+
+  window.addEventListener("hashchange", showPageFromHash);
+  showPageFromHash();
 }
 
 function escapeHtml(str) {
@@ -2143,6 +2148,191 @@ function escapeHtml(str) {
     .replace(/>/g, "&gt;")
     .replace(/"/g, "&quot;")
     .replace(/'/g, "&#039;");
+}
+
+// 15. Gemini Portfolio Chatbot
+function initGeminiChat() {
+  const toggle = document.getElementById("gemini-chat-toggle");
+  const close = document.getElementById("gemini-chat-close");
+  const panel = document.getElementById("gemini-chat-panel");
+  const form = document.getElementById("gemini-chat-form");
+  const input = document.getElementById("gemini-chat-input");
+  const keyInput = document.getElementById("gemini-api-key");
+  const saveKeyButton = document.getElementById("gemini-save-key");
+  const messages = document.getElementById("gemini-chat-messages");
+  const apiKeyStorageKey = "luc_portfolio_gemini_api_key";
+  const configuredApiKey = import.meta.env.VITE_GEMINI_API_KEY || "";
+  const savedKey = sessionStorage.getItem(apiKeyStorageKey);
+  const conversation = [];
+  const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || "";
+  const supabasePublishableKey = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY || "";
+  const supabase = supabaseUrl && supabasePublishableKey
+    ? createClient(supabaseUrl, supabasePublishableKey)
+    : null;
+  let chatUserId = null;
+
+  if (!toggle || !panel || !form || !input || !keyInput || !messages) return;
+  if (configuredApiKey) {
+    keyInput.closest(".gemini-chat-settings")?.remove();
+  } else if (savedKey) {
+    keyInput.value = savedKey;
+  }
+
+  function setOpen(isOpen) {
+    toggle.setAttribute("aria-expanded", String(isOpen));
+    panel.hidden = !isOpen;
+    if (isOpen) input.focus();
+  }
+
+  function addMessage(text, role) {
+    const message = document.createElement("div");
+    message.className = `gemini-message ${role}`;
+    message.textContent = text;
+    messages.appendChild(message);
+    messages.scrollTop = messages.scrollHeight;
+    return message;
+  }
+
+  async function initializeChatHistory() {
+    if (!supabase) return;
+
+    const { data: sessionData } = await supabase.auth.getSession();
+    let user = sessionData.session?.user;
+
+    if (!user) {
+      const { data, error } = await supabase.auth.signInAnonymously();
+      if (error) throw error;
+      user = data.user;
+    }
+
+    chatUserId = user?.id || null;
+    if (!chatUserId) return;
+
+    const { data: savedMessages, error } = await supabase
+      .from("chat_messages")
+      .select("role, content")
+      .eq("user_id", chatUserId)
+      .order("created_at", { ascending: true });
+
+    if (error) throw error;
+    if (!savedMessages?.length) return;
+
+    messages.innerHTML = "";
+    savedMessages.forEach(({ role, content }) => {
+      conversation.push({
+        role: role === "assistant" ? "model" : "user",
+        parts: [{ text: content }]
+      });
+      addMessage(content, role);
+    });
+  }
+
+  async function saveChatMessage(role, content) {
+    if (!supabase || !chatUserId) return;
+
+    const { error } = await supabase.from("chat_messages").insert({
+      user_id: chatUserId,
+      role,
+      content
+    });
+
+    if (error) console.warn("Chatbericht kon niet worden opgeslagen:", error.message);
+  }
+
+  function saveKey() {
+    const key = keyInput.value.trim();
+    if (!key) {
+      sessionStorage.removeItem(apiKeyStorageKey);
+      showToast("API-key verwijderd uit deze browsersessie.", "info");
+      return;
+    }
+    sessionStorage.setItem(apiKeyStorageKey, key);
+    showToast("Gemini API-key opgeslagen voor deze sessie.", "success");
+  }
+
+  function getPortfolioContext() {
+    const pageText = document.body.innerText
+      .replace(/Vraag de portfolio-assistent[\s\S]*?(?=Story Details Modal|$)/i, "")
+      .replace(/\n{3,}/g, "\n\n")
+      .trim();
+
+    return pageText.slice(0, 50000);
+  }
+
+  function cleanAssistantAnswer(answer) {
+    return answer
+      .replace(/\n{3,}/g, "\n\n")
+      .replace(/^\s*#{1,6}\s*/gm, "")
+      .trim();
+  }
+
+  toggle.addEventListener("click", () => setOpen(panel.hidden));
+  if (close) close.addEventListener("click", () => setOpen(false));
+  if (saveKeyButton) saveKeyButton.addEventListener("click", saveKey);
+
+  const chatHistoryReady = initializeChatHistory().catch((error) => {
+    console.warn("Chatgeschiedenis kon niet worden geladen:", error.message);
+  });
+
+  form.addEventListener("submit", async (event) => {
+    event.preventDefault();
+    await chatHistoryReady;
+    const question = input.value.trim();
+    const apiKey = configuredApiKey || keyInput.value.trim();
+
+    if (!apiKey) {
+      addMessage("Vul eerst je Gemini API-key in.", "assistant");
+      keyInput.focus();
+      return;
+    }
+    if (!question) return;
+
+    addMessage(question, "user");
+    await saveChatMessage("user", question);
+    input.value = "";
+    input.disabled = true;
+    const loadingMessage = addMessage("Even nadenken...", "assistant loading");
+    conversation.push({ role: "user", parts: [{ text: question }] });
+
+    try {
+      const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-3.8-flash:generateContent?key=${encodeURIComponent(apiKey)}`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          systemInstruction: {
+            parts: [{ text: `Je bent de vriendelijke portfolio-assistent van Luc Meijerink. Beantwoord alleen de concrete vraag van de bezoeker in het Nederlands op basis van de actuele portfolio-context hieronder. Gebruik uitsluitend feiten uit deze context, tenzij de bezoeker expliciet om algemene uitleg vraagt. Als iets niet in de context staat, zeg dat eerlijk.
+
+Houd elk antwoord overzichtelijk:
+- maximaal 2 korte alinea's of maximaal 5 korte bullets;
+- begin direct met het antwoord;
+- gebruik een korte kop alleen als dat echt helpt;
+- herhaal niet de volledige context en voeg geen ongevraagde details toe;
+- schrijf helder, vriendelijk en zonder lange inleiding.
+
+ACTUELE PORTFOLIO-CONTEXT:
+${getPortfolioContext()}` }]
+          },
+          contents: conversation
+        })
+      });
+      const data = await response.json();
+      if (!response.ok) throw new Error(data.error?.message || "Gemini kon geen antwoord geven.");
+
+      const answer = cleanAssistantAnswer(data.candidates?.[0]?.content?.parts?.map(part => part.text || "").join("") || "");
+      if (!answer) throw new Error("Gemini gaf een leeg antwoord.");
+      conversation.push({ role: "model", parts: [{ text: answer }] });
+      loadingMessage.textContent = answer;
+      loadingMessage.classList.remove("loading");
+      await saveChatMessage("assistant", answer);
+    } catch (error) {
+      conversation.pop();
+      loadingMessage.textContent = `Er ging iets mis: ${error.message}`;
+      loadingMessage.classList.remove("loading");
+    } finally {
+      input.disabled = false;
+      input.focus();
+    }
+  });
 }
 
 // 15. PDF Export & Assessment Rapport Print Functionaliteit
@@ -2424,6 +2614,7 @@ document.addEventListener("DOMContentLoaded", () => {
   updateMatrixAndScore();
   renderCurrentFocusWidget();
   initPortfolioQrCode();
+  initGeminiChat();
   initAddStoryForm();
   initAddLinkForm();
   initExportPdf();
