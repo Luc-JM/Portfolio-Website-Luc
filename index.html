@@ -17,6 +17,7 @@
 
     <!-- Pure Vanilla Stylesheet -->
     <link rel="stylesheet" href="/style.css">
+    <script type="module" src="/content/site-content.js"></script>
   </head>
   <body>
     <!-- Site Header & Sticky Navbar -->
@@ -63,7 +64,7 @@
             </svg>
           </button>
 
-          <button id="mobile-menu-toggle" class="mobile-menu-toggle" aria-label="Open mobiel menu en profiel">
+          <button id="mobile-menu-toggle" class="mobile-menu-toggle" aria-label="Open mobiel menu">
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
               <line x1="4" x2="20" y1="12" y2="12"></line>
               <line x1="4" x2="20" y1="6" y2="6"></line>
@@ -73,98 +74,15 @@
         </div>
       </div>
 
-      <!-- Mobiele Navigatie Backdrop & Slide-out Paneel met Luc's Profiel -->
+      <!-- Mobiele Navigatie Drawer -->
       <div id="mobile-nav-backdrop" class="mobile-nav-backdrop" aria-hidden="true"></div>
-      <div id="mobile-nav-drawer" class="mobile-nav-drawer" role="dialog" aria-label="Studentenprofiel en navigatiemenu">
+      <div id="mobile-nav-drawer" class="mobile-nav-drawer" role="dialog" aria-label="Navigatiemenu">
         <div class="mobile-drawer-header">
           <div class="mobile-drawer-title-group">
-            <span class="mobile-drawer-badge">Studentenprofiel</span>
-            <span class="mobile-drawer-name">Luc Meijerink</span>
+            <span class="mobile-drawer-badge">Menu</span>
+            <span class="mobile-drawer-name">Navigatie</span>
           </div>
           <button type="button" id="mobile-drawer-close-btn" class="mobile-drawer-close-btn" aria-label="Sluit menu">✕</button>
-        </div>
-
-        <!-- Student Profile Box in het Mobiele Menu -->
-        <div class="mobile-profile-card">
-          <div class="profile-photo-hero mobile-photo-hero">
-            <div class="profile-photo-wrapper">
-              <div class="profile-photo-frame">
-                <div class="profile-photo-avatar">
-                  <span class="photo-initials">LM</span>
-                </div>
-                <div class="photo-status-badge" title="Actief Student • 2026">
-                  <span class="status-live-dot"></span>
-                  <span>Actief Student</span>
-                </div>
-              </div>
-            </div>
-            <div class="profile-photo-meta">
-              <h3 class="profile-header-name">Luc Meijerink</h3>
-              <p class="profile-header-sub">Student Finance & Control • AI Minor 2026</p>
-            </div>
-          </div>
-
-          <div class="profile-info-list">
-            <div class="profile-info-item">
-              <span class="info-label">Opleiding</span>
-              <span class="info-value">Finance & Control</span>
-            </div>
-            <div class="profile-info-item">
-              <span class="info-label">Leeftijd</span>
-              <span class="info-value highlight">21 jaar</span>
-            </div>
-          </div>
-
-          <!-- Live Huidige Focus Widget Mobiel -->
-          <div class="profile-current-focus-card">
-            <div class="focus-card-header">
-              <div class="focus-title-group">
-                <span class="focus-pulse-dot" aria-hidden="true"></span>
-                <span class="focus-section-label">Huidige Focus</span>
-              </div>
-              <span class="focus-sprint-badge">Sprint 1 (Actief)</span>
-            </div>
-            <div class="focus-story-content">
-              <!-- Dynamisch gevuld via script.js -->
-            </div>
-          </div>
-
-          <!-- Directe Contact- & Platformknoppen Mobiel -->
-          <div class="profile-action-buttons">
-            <a href="mailto:luc.meijerink@student.hu.nl" class="social-btn email-btn" title="Stuur een e-mail naar Luc Meijerink">
-              <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <rect width="20" height="16" x="2" y="4" rx="2"></rect>
-                <path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"></path>
-              </svg>
-              <span class="btn-text-wrap">
-                <span class="btn-sublabel">Direct e-mailen</span>
-                <span class="btn-mainlabel">luc.meijerink@student.hu.nl</span>
-              </span>
-              <span class="btn-arrow">✉</span>
-            </a>
-
-            <a href="https://www.linkedin.com/in/luc-meijerink-16106b217/" target="_blank" rel="noopener noreferrer" class="social-btn linkedin-btn" title="LinkedIn profiel">
-              <svg width="17" height="17" viewBox="0 0 24 24" fill="currentColor">
-                <path d="M19 0h-14c-2.761 0-5 2.239-5 5v14c0 2.761 2.239 5 5 5h14c2.762 0 5-2.239 5-5v-14c0-2.761-2.238-5-5-5zm-11 19h-3v-11h3v11zm-1.5-12.268c-.966 0-1.75-.79-1.75-1.764s.784-1.764 1.75-1.764 1.75.79 1.75 1.764-.783 1.764-1.75 1.764zm13.5 12.268h-3v-5.604c0-3.368-4-3.113-4 0v5.604h-3v-11h3v1.765c1.396-2.586 7-2.777 7 2.476v6.759z"/>
-              </svg>
-              <span>LinkedIn Profiel</span>
-              <span class="btn-arrow">↗</span>
-            </a>
-
-            <a href="https://github.com/lucmeijerink" target="_blank" rel="noopener noreferrer" class="social-btn github-btn" title="GitHub">
-              <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <path d="M15 22v-4a4.8 4.8 0 0 0-1-3.5c3 0 6-2 6-5.5.08-1.25-.27-2.48-1-3.5.28-1.15.28-2.35 0-3.5 0 0-1 0-3 1.5-2.64-.5-5.36-.5-8 0C6 2 5 2 5 2c-.3 1.15-.3 2.35 0 3.5A5.403 5.403 0 0 0 4 9c0 3.5 3 5.5 6 5.5-.39.49-.68 1.05-.85 1.65-.17.6-.22 1.23-.15 1.85v4"></path>
-                <path d="M9 18c-4.51 2-5-2-7-2"></path>
-              </svg>
-              <span>GitHub Versiebeheer</span>
-              <span class="btn-arrow">↗</span>
-            </a>
-
-            <button type="button" class="btn-qr-modal-open mobile-qr-btn" title="Vergroot QR-code">
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7"/></svg>
-              <span>Toon Portfolio QR-code</span>
-            </button>
-          </div>
         </div>
 
         <div class="mobile-drawer-divider">

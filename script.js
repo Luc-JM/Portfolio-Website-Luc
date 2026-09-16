@@ -2897,8 +2897,134 @@ async function initPortfolioQrCode() {
   }
 }
 
+function applySiteContent() {
+  if (!window.PORTFOLIO_CONTENT) return;
+
+  const content = window.PORTFOLIO_CONTENT;
+
+  if (content.site?.title) {
+    document.title = content.site.title;
+  }
+
+  const brandName = document.querySelector(".brand-name");
+  if (brandName && content.site?.brand) {
+    brandName.textContent = content.site.brand;
+  }
+
+  const dashboardBadge = document.getElementById("dash-sprint-badge-text");
+  if (dashboardBadge && content.pages?.dashboard?.badge) {
+    dashboardBadge.textContent = content.pages.dashboard.badge;
+  }
+
+  const dashboardTitle = document.querySelector(".dash-hero-title");
+  if (dashboardTitle && content.pages?.dashboard?.heroTitle) {
+    dashboardTitle.textContent = content.pages.dashboard.heroTitle;
+  }
+
+  const dashboardLead = document.querySelector(".dash-hero-lead");
+  if (dashboardLead && content.pages?.dashboard?.heroLead) {
+    dashboardLead.textContent = content.pages.dashboard.heroLead;
+  }
+
+  const aboutTitle = document.querySelector("#over-mij .section-title");
+  if (aboutTitle && content.pages?.about?.sectionTitle) {
+    aboutTitle.textContent = content.pages.about.sectionTitle;
+  }
+
+  const aboutSubtitle = document.querySelector("#over-mij .section-subtitle");
+  if (aboutSubtitle && content.pages?.about?.subtitle) {
+    aboutSubtitle.textContent = content.pages.about.subtitle;
+  }
+
+  const aboutIntroName = document.querySelector("#over-mij .about-intro-card h3");
+  if (aboutIntroName && content.pages?.about?.introName) {
+    aboutIntroName.textContent = content.pages.about.introName;
+  }
+
+  const aboutIntroRole = document.querySelector("#over-mij .about-role");
+  if (aboutIntroRole && content.pages?.about?.introRole) {
+    aboutIntroRole.textContent = content.pages.about.introRole;
+  }
+
+  const aboutIntroText = document.querySelector("#over-mij .about-intro-card p:not(.about-role)");
+  if (aboutIntroText && content.pages?.about?.introText) {
+    aboutIntroText.textContent = content.pages.about.introText;
+  }
+
+  const aboutMotivationTitle = document.querySelector("#over-mij .about-story-block h3");
+  if (aboutMotivationTitle && content.pages?.about?.motivationTitle) {
+    aboutMotivationTitle.textContent = content.pages.about.motivationTitle;
+  }
+
+  const aboutMotivationText = document.querySelector("#over-mij .about-story-block p");
+  if (aboutMotivationText && content.pages?.about?.motivationText) {
+    aboutMotivationText.textContent = content.pages.about.motivationText;
+  }
+
+  const documentsTitle = document.querySelector("#documenten .section-title");
+  if (documentsTitle && content.pages?.documents?.sectionTitle) {
+    documentsTitle.textContent = content.pages.documents.sectionTitle;
+  }
+
+  const documentsSubtitle = document.querySelector("#documenten .section-subtitle");
+  if (documentsSubtitle && content.pages?.documents?.subtitle) {
+    documentsSubtitle.textContent = content.pages.documents.subtitle;
+  }
+
+  const learningTitle = document.querySelector("#leeruitkomsten .section-title");
+  if (learningTitle && content.pages?.learning?.sectionTitle) {
+    learningTitle.textContent = content.pages.learning.sectionTitle;
+  }
+
+  const learningSubtitle = document.querySelector("#leeruitkomsten .section-subtitle");
+  if (learningSubtitle && content.pages?.learning?.subtitle) {
+    learningSubtitle.textContent = content.pages.learning.subtitle;
+  }
+
+  const contactTitle = document.querySelector("#contact .section-title");
+  if (contactTitle && content.pages?.contact?.sectionTitle) {
+    contactTitle.textContent = content.pages.contact.sectionTitle;
+  }
+
+  const contactSubtitle = document.querySelector("#contact .section-subtitle");
+  if (contactSubtitle && content.pages?.contact?.subtitle) {
+    contactSubtitle.textContent = content.pages.contact.subtitle;
+  }
+
+  const contactIntroTitle = document.querySelector("#contact .contact-card h3");
+  if (contactIntroTitle && content.pages?.contact?.introTitle) {
+    contactIntroTitle.textContent = content.pages.contact.introTitle;
+  }
+
+  const contactIntroText = document.querySelector("#contact .contact-card p");
+  if (contactIntroText && content.pages?.contact?.introText) {
+    contactIntroText.textContent = content.pages.contact.introText;
+  }
+
+  const footerBrand = document.querySelector(".footer-brand");
+  if (footerBrand && content.site?.footerBrand) {
+    footerBrand.textContent = content.site.footerBrand;
+  }
+
+  const footerMeta = document.querySelector(".footer-meta");
+  if (footerMeta && content.site?.footerMeta) {
+    footerMeta.textContent = content.site.footerMeta;
+  }
+
+  const footerCta = document.querySelector(".footer-links .nav-link");
+  if (footerCta && content.pages?.footer?.cta) {
+    footerCta.textContent = content.pages.footer.cta;
+  }
+
+  const footerLogo = document.querySelector(".footer-logo img");
+  if (footerLogo && content.pages?.footer?.images?.logo) {
+    footerLogo.src = content.pages.footer.images.logo;
+  }
+}
+
 // Initialisatie bij Pagina Laden
 document.addEventListener("DOMContentLoaded", () => {
+  applySiteContent();
   initTheme();
   initNavigation();
   initAdminMode();
