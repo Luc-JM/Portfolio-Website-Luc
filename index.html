@@ -24,7 +24,6 @@
       <div class="container navbar">
         <a href="#dashboard" class="brand-logo" id="nav-brand-link">
           <span class="brand-name">Luc Meijerink</span>
-          <span class="brand-badge">Minor: Future-proof met AI!</span>
         </a>
 
         <!-- Desktop Navigation with Timeline -->
@@ -552,6 +551,10 @@
                   </div>
                 </div>
                 <div class="files-hub-actions">
+                  <span class="files-hub-sync-badge" id="files-hub-sync-status" title="Status van synchronisatie tussen apparaten voor docenten">
+                    <span class="sync-dot"></span>
+                    <span class="sync-text">Lokaal opgeslagen</span>
+                  </span>
                   <span class="files-hub-count-badge" id="files-hub-count">0 bestanden gekoppeld</span>
                   <button class="btn-dash primary" id="btn-hub-add-link" style="padding: 0.45rem 0.85rem; font-size: 0.8rem;">
                     <span>+ Bestand Toevoegen</span>
@@ -1057,17 +1060,17 @@
           <button class="gemini-chat-close" id="gemini-chat-close" type="button" aria-label="Sluit chatbot">✕</button>
         </div>
 
-        <div class="gemini-chat-settings">
-          <label for="gemini-api-key">Jouw Gemini API-key</label>
-          <div class="gemini-key-row">
-            <input id="gemini-api-key" type="password" autocomplete="off" placeholder="Plak hier je API-key" />
-            <button id="gemini-save-key" class="gemini-secondary-button" type="button">Opslaan</button>
-          </div>
-          <p>De key blijft alleen in deze browsersessie. Je chatgeschiedenis wordt veilig aan deze browser gekoppeld en bij terugkeer opnieuw geladen.</p>
-        </div>
-
         <div class="gemini-chat-messages" id="gemini-chat-messages" aria-live="polite">
-          <div class="gemini-message assistant">Hoi! Ik kan vragen beantwoorden over Luc, zijn minor, projecten en leeruitkomsten. Vul eerst je eigen Gemini API-key in.</div>
+          <div class="gemini-message assistant">
+            <div class="gemini-message-content">Hoi! Ik ben de portfolio-assistent van Luc. Stel gerust een vraag over Luc, zijn achtergrond, de minor Future-proof met AI!, zijn projecten of zijn leeruitkomsten.</div>
+            <button type="button" class="gemini-copy-btn" aria-label="Kopieer antwoord naar klembord" title="Kopieer antwoord" data-copy-text="Hoi! Ik ben de portfolio-assistent van Luc. Stel gerust een vraag over Luc, zijn achtergrond, de minor Future-proof met AI!, zijn projecten of zijn leeruitkomsten.">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <rect width="14" height="14" x="8" y="8" rx="2" ry="2"/>
+                <path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/>
+              </svg>
+              <span class="copy-label">Kopieer</span>
+            </button>
+          </div>
         </div>
 
         <form class="gemini-chat-form" id="gemini-chat-form">

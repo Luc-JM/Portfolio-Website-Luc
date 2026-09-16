@@ -238,9 +238,197 @@ const defaultSprintsData = [
   }
 ];
 
-// 2. Data Initialisatie via LocalStorage
+// 2. Data Initialisatie via LocalStorage & Cloud Synchronisatie (Supabase + Server API)
 const STORAGE_KEY = "luc_portfolio_sprints_v3";
 let sprintsData = loadSprintsData();
+
+// Gedeelde Supabase client voor realtime synchronisatie van documenten, stories en chat
+let supabaseClient = null;
+function getSupabaseClient() {
+  if (supabaseClient) return supabaseClient;
+  try {
+    let rawUrl = (import.meta.env.VITE_SUPABASE_URL || "").trim();
+    const rawKey = (import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY || "").trim();
+
+    // Valideer of herstel naar officieel project endpoint als URL ontbreekt of per ongeluk geen http(s) bevat
+    if (!rawUrl || (!rawUrl.startsWith("http://") && !rawUrl.startsWith("https://"))) {
+      rawUrl = "https://wllvfqseygzflhxjcbxx.supabase.co";
+    }
+
+    // Auto-fix mocht .com per ongeluk ingevuld zijn i.p.v. .co
+    if (rawUrl.includes(".supabase.com")) {
+      rawUrl = rawUrl.replace(".supabase.com", ".supabase.co");
+    }
+
+    // Alleen initialiseren als de key geen lege placeholder of per ongeluk een gemini key is
+    if (rawKey && !rawKey.startsWith("AQ.") && !rawKey.startsWith("AIza")) {
+      supabaseClient = createClient(rawUrl, rawKey);
+    }
+  } catch (err) {
+    console.warn("Supabase initialisatie:", err);
+    supabaseClient = null;
+  }
+  return supabaseClient;
+}
+
+// Visual status indicator voor docenten en assessoren
+function updateCloudStatusBadge(isSynced, sourceName = "") {
+  const badge = document.getElementById("files-hub-sync-status");
+  if (!badge) return;
+  if (isSynced) {
+    badge.className = "files-hub-sync-badge synced";
+    badge.innerHTML = `
+      <span class="sync-dot"></span>
+      <span class="sync-text">${sourceName ? `${sourceName} gesynchroniseerd` : 'Cloud gesynchroniseerd'}</span>
+    `;
+    badge.title = `Alle stories en gekoppelde bestanden zijn live gesynchroniseerd via ${sourceName || 'de cloud'} en direct zichtbaar voor docenten op hun laptops.`;
+  } else {
+    badge.className = "files-hub-sync-badge local";
+    badge.innerHTML = `
+      <span class="sync-dot"></span>
+      <span class="sync-text">Lokaal opgeslagen</span>
+    `;
+    badge.title = "Data is lokaal in de browser opgeslagen. Zodra verbinding met de cloud gemaakt wordt, synchroniseert dit automatisch.";
+  }
+}
+
+// Debounced cloud save om zowel naar Supabase als naar de server state te schrijven
+let syncTimeout = null;
+function triggerCloudSave() {
+  clearTimeout(syncTimeout);
+  syncTimeout = setTimeout(async () => {
+    const payload = {
+      sprints_data: sprintsData,
+      matrix_data: typeof matrixEvaluations !== "undefined" ? matrixEvaluations : null,
+      updated_at: new Date().toISOString()
+    };
+
+    const badge = document.getElementById("files-hub-sync-status");
+    if (badge) {
+      badge.classList.add("syncing");
+      const textEl = badge.querySelector(".sync-text");
+      if (textEl) textEl.textContent = "Opslaan in cloud...";
+    }
+
+    let savedToSupabase = false;
+    let savedToServer = false;
+
+    // 1. Schrijf naar Supabase (tabel 'portfolio_state')
+    const client = getSupabaseClient();
+    if (client) {
+      try {
+        const { error } = await client
+          .from("portfolio_state")
+          .upsert({ id: "main", ...payload }, { onConflict: "id" });
+        if (!error) {
+          savedToSupabase = true;
+          console.log("Portfolio data succesvol opgeslagen in Supabase.");
+        } else {
+          console.warn("Supabase upsert melding:", error.message);
+        }
+      } catch (err) {
+        console.warn("Supabase upsert fout:", err);
+      }
+    }
+
+    // 2. Schrijf naar server state API (altijd als redundante backup voor docenten)
+    try {
+      const resp = await fetch("/api/portfolio/state", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload)
+      });
+      if (resp.ok) {
+        savedToServer = true;
+      }
+    } catch (err) {
+      console.warn("Server state opslaan fout:", err);
+    }
+
+    if (savedToSupabase) {
+      updateCloudStatusBadge(true, "Supabase");
+    } else if (savedToServer) {
+      updateCloudStatusBadge(true, "Cloud");
+    } else {
+      updateCloudStatusBadge(false);
+    }
+  }, 350);
+}
+
+// Haal de meest actuele portfolio documenten en data op vanuit de cloud bij het laden van de pagina
+async function syncPortfolioDataFromCloud() {
+  const badge = document.getElementById("files-hub-sync-status");
+  if (badge) {
+    badge.classList.add("syncing");
+    const textEl = badge.querySelector(".sync-text");
+    if (textEl) textEl.textContent = "Cloud data ophalen...";
+  }
+
+  let cloudSprints = null;
+  let cloudMatrix = null;
+  let source = "";
+
+  // 1. Probeer Supabase
+  const client = getSupabaseClient();
+  if (client) {
+    try {
+      const { data, error } = await client
+        .from("portfolio_state")
+        .select("sprints_data, matrix_data")
+        .eq("id", "main")
+        .maybeSingle();
+
+      if (!error && data?.sprints_data && Array.isArray(data.sprints_data) && data.sprints_data.length === 8) {
+        cloudSprints = data.sprints_data;
+        if (data.matrix_data) cloudMatrix = data.matrix_data;
+        source = "Supabase";
+      } else if (!data) {
+        // Eerste keer: Supabase tabel is nog leeg, sla huidige portfolio data direct op
+        triggerCloudSave();
+      }
+    } catch (err) {
+      console.warn("Supabase ophalen:", err);
+    }
+  }
+
+  // 2. Probeer server state API als fallback
+  if (!cloudSprints) {
+    try {
+      const resp = await fetch("/api/portfolio/state");
+      if (resp.ok) {
+        const serverData = await resp.json();
+        if (serverData?.sprints_data && Array.isArray(serverData.sprints_data) && serverData.sprints_data.length === 8) {
+          cloudSprints = serverData.sprints_data;
+          if (serverData.matrix_data) cloudMatrix = serverData.matrix_data;
+          source = "Cloud";
+        }
+      }
+    } catch (err) {
+      console.warn("Server sync ophalen:", err);
+    }
+  }
+
+  // Als er cloud data aanwezig is, update lokale data en her-render alle componenten
+  if (cloudSprints) {
+    sprintsData = cloudSprints;
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(sprintsData));
+    if (cloudMatrix && typeof matrixEvaluations !== "undefined") {
+      matrixEvaluations = cloudMatrix;
+      localStorage.setItem("luc_portfolio_manual_matrix_evaluations", JSON.stringify(matrixEvaluations));
+    }
+    updateAllStoriesData();
+    renderActiveSprint();
+    renderStories();
+    renderDashboardFilesHub();
+    updateMatrixAndScore();
+    if (typeof renderCurrentFocusWidget === "function") {
+      renderCurrentFocusWidget();
+    }
+    updateCloudStatusBadge(true, source);
+  } else {
+    updateCloudStatusBadge(false);
+  }
+}
 
 function loadSprintsData() {
   const saved = localStorage.getItem(STORAGE_KEY);
@@ -263,6 +451,8 @@ function saveSprintsData() {
   if (typeof renderCurrentFocusWidget === "function") {
     renderCurrentFocusWidget();
   }
+  // Synchroniseer direct naar cloud zodat docenten en assessoren altijd de actuele bestanden zien
+  triggerCloudSave();
 }
 
 // Flat list van alle stories
@@ -840,6 +1030,7 @@ let matrixEvaluations = loadMatrixEvaluations();
 function saveMatrixEvaluations() {
   try {
     localStorage.setItem(MATRIX_STORAGE_KEY, JSON.stringify(matrixEvaluations));
+    triggerCloudSave();
   } catch (e) {
     console.error("Fout bij opslaan van matrix evaluaties:", e);
     showToast("Kon wijzigingen niet opslaan in LocalStorage", "error");
@@ -2157,26 +2348,12 @@ function initGeminiChat() {
   const panel = document.getElementById("gemini-chat-panel");
   const form = document.getElementById("gemini-chat-form");
   const input = document.getElementById("gemini-chat-input");
-  const keyInput = document.getElementById("gemini-api-key");
-  const saveKeyButton = document.getElementById("gemini-save-key");
   const messages = document.getElementById("gemini-chat-messages");
-  const apiKeyStorageKey = "luc_portfolio_gemini_api_key";
-  const configuredApiKey = import.meta.env.VITE_GEMINI_API_KEY || "";
-  const savedKey = sessionStorage.getItem(apiKeyStorageKey);
   const conversation = [];
-  const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || "";
-  const supabasePublishableKey = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY || "";
-  const supabase = supabaseUrl && supabasePublishableKey
-    ? createClient(supabaseUrl, supabasePublishableKey)
-    : null;
+  const supabase = getSupabaseClient();
   let chatUserId = null;
 
-  if (!toggle || !panel || !form || !input || !keyInput || !messages) return;
-  if (configuredApiKey) {
-    keyInput.closest(".gemini-chat-settings")?.remove();
-  } else if (savedKey) {
-    keyInput.value = savedKey;
-  }
+  if (!toggle || !panel || !form || !input || !messages) return;
 
   function setOpen(isOpen) {
     toggle.setAttribute("aria-expanded", String(isOpen));
@@ -2184,70 +2361,185 @@ function initGeminiChat() {
     if (isOpen) input.focus();
   }
 
+  function createCopyButton(text) {
+    const button = document.createElement("button");
+    button.type = "button";
+    button.className = "gemini-copy-btn";
+    button.setAttribute("aria-label", "Kopieer antwoord naar klembord");
+    button.title = "Kopieer antwoord naar klembord";
+    button.dataset.copyText = text;
+    button.innerHTML = `
+      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <rect width="14" height="14" x="8" y="8" rx="2" ry="2"/>
+        <path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/>
+      </svg>
+      <span class="copy-label">Kopieer</span>
+    `;
+    return button;
+  }
+
   function addMessage(text, role) {
     const message = document.createElement("div");
     message.className = `gemini-message ${role}`;
-    message.textContent = text;
+
+    if (role.includes("loading")) {
+      const indicator = document.createElement("div");
+      indicator.className = "gemini-typing-indicator";
+      indicator.setAttribute("aria-label", "Assistent is aan het typen...");
+      indicator.innerHTML = `<span></span><span></span><span></span>`;
+      message.appendChild(indicator);
+    } else {
+      const content = document.createElement("div");
+      content.className = "gemini-message-content";
+      content.textContent = text;
+      message.appendChild(content);
+
+      if (role.includes("assistant")) {
+        message.appendChild(createCopyButton(text));
+      }
+    }
+
     messages.appendChild(message);
     messages.scrollTop = messages.scrollHeight;
     return message;
   }
 
+  function fallbackCopyText(text, onSuccess) {
+    try {
+      const textArea = document.createElement("textarea");
+      textArea.value = text;
+      textArea.style.position = "fixed";
+      textArea.style.left = "-9999px";
+      textArea.style.top = "-9999px";
+      textArea.setAttribute("readonly", "");
+      document.body.appendChild(textArea);
+      textArea.select();
+      document.execCommand("copy");
+      document.body.removeChild(textArea);
+      onSuccess();
+    } catch (err) {
+      console.warn("Kopiëren via fallback is mislukt:", err);
+    }
+  }
+
+  messages.addEventListener("click", (e) => {
+    const copyBtn = e.target.closest(".gemini-copy-btn");
+    if (!copyBtn) return;
+    const messageEl = copyBtn.closest(".gemini-message");
+    const contentEl = messageEl?.querySelector(".gemini-message-content");
+    const textToCopy = copyBtn.dataset.copyText || contentEl?.innerText?.trim() || "";
+    if (!textToCopy) return;
+
+    const handleSuccess = () => {
+      copyBtn.classList.add("copied");
+      const label = copyBtn.querySelector(".copy-label");
+      if (label) label.textContent = "Gekopieerd!";
+      setTimeout(() => {
+        copyBtn.classList.remove("copied");
+        if (label) label.textContent = "Kopieer";
+      }, 2000);
+    };
+
+    if (navigator.clipboard && window.isSecureContext) {
+      navigator.clipboard.writeText(textToCopy).then(handleSuccess).catch(() => {
+        fallbackCopyText(textToCopy, handleSuccess);
+      });
+    } else {
+      fallbackCopyText(textToCopy, handleSuccess);
+    }
+  });
+
+  function loadLocalChatHistory() {
+    try {
+      const localData = localStorage.getItem("luc_portfolio_chat_history");
+      if (!localData) return;
+      const history = JSON.parse(localData);
+      if (Array.isArray(history) && history.length > 0) {
+        messages.innerHTML = "";
+        history.forEach(({ role, content }) => {
+          conversation.push({
+            role: role === "assistant" ? "model" : "user",
+            parts: [{ text: content }]
+          });
+          addMessage(content, role);
+        });
+      }
+    } catch (_) {}
+  }
+
+  function saveLocalChatMessage(role, content) {
+    try {
+      const localData = localStorage.getItem("luc_portfolio_chat_history");
+      const history = localData ? JSON.parse(localData) : [];
+      history.push({ role, content });
+      localStorage.setItem("luc_portfolio_chat_history", JSON.stringify(history.slice(-50)));
+    } catch (_) {}
+  }
+
   async function initializeChatHistory() {
-    if (!supabase) return;
-
-    const { data: sessionData } = await supabase.auth.getSession();
-    let user = sessionData.session?.user;
-
-    if (!user) {
-      const { data, error } = await supabase.auth.signInAnonymously();
-      if (error) throw error;
-      user = data.user;
+    if (!supabase) {
+      loadLocalChatHistory();
+      return;
     }
 
-    chatUserId = user?.id || null;
-    if (!chatUserId) return;
+    try {
+      const { data: sessionData, error: sessionErr } = await supabase.auth.getSession();
+      if (sessionErr) throw sessionErr;
+      let user = sessionData?.session?.user;
 
-    const { data: savedMessages, error } = await supabase
-      .from("chat_messages")
-      .select("role, content")
-      .eq("user_id", chatUserId)
-      .order("created_at", { ascending: true });
+      if (!user) {
+        const { data, error } = await supabase.auth.signInAnonymously();
+        if (error) throw error;
+        user = data?.user;
+      }
 
-    if (error) throw error;
-    if (!savedMessages?.length) return;
+      chatUserId = user?.id || null;
+      if (!chatUserId) {
+        loadLocalChatHistory();
+        return;
+      }
 
-    messages.innerHTML = "";
-    savedMessages.forEach(({ role, content }) => {
-      conversation.push({
-        role: role === "assistant" ? "model" : "user",
-        parts: [{ text: content }]
+      const { data: savedMessages, error } = await supabase
+        .from("chat_messages")
+        .select("role, content")
+        .eq("user_id", chatUserId)
+        .order("created_at", { ascending: true });
+
+      if (error) throw error;
+      if (!savedMessages?.length) {
+        loadLocalChatHistory();
+        return;
+      }
+
+      messages.innerHTML = "";
+      savedMessages.forEach(({ role, content }) => {
+        conversation.push({
+          role: role === "assistant" ? "model" : "user",
+          parts: [{ text: content }]
+        });
+        addMessage(content, role);
       });
-      addMessage(content, role);
-    });
+    } catch (e) {
+      console.warn("Supabase geschiedenis ophalen mislukt, val terug op browseropslag:", e.message);
+      loadLocalChatHistory();
+    }
   }
 
   async function saveChatMessage(role, content) {
+    saveLocalChatMessage(role, content);
     if (!supabase || !chatUserId) return;
 
-    const { error } = await supabase.from("chat_messages").insert({
-      user_id: chatUserId,
-      role,
-      content
-    });
+    try {
+      const { error } = await supabase.from("chat_messages").insert({
+        user_id: chatUserId,
+        role,
+        content
+      });
 
-    if (error) console.warn("Chatbericht kon niet worden opgeslagen:", error.message);
-  }
-
-  function saveKey() {
-    const key = keyInput.value.trim();
-    if (!key) {
-      sessionStorage.removeItem(apiKeyStorageKey);
-      showToast("API-key verwijderd uit deze browsersessie.", "info");
-      return;
+      if (error) console.warn("Chatbericht kon niet worden opgeslagen in Supabase:", error.message);
+    } catch (err) {
+      console.warn("Fout bij opslaan in Supabase:", err.message);
     }
-    sessionStorage.setItem(apiKeyStorageKey, key);
-    showToast("Gemini API-key opgeslagen voor deze sessie.", "success");
   }
 
   function getPortfolioContext() {
@@ -2268,7 +2560,6 @@ function initGeminiChat() {
 
   toggle.addEventListener("click", () => setOpen(panel.hidden));
   if (close) close.addEventListener("click", () => setOpen(false));
-  if (saveKeyButton) saveKeyButton.addEventListener("click", saveKey);
 
   const chatHistoryReady = initializeChatHistory().catch((error) => {
     console.warn("Chatgeschiedenis kon niet worden geladen:", error.message);
@@ -2278,29 +2569,22 @@ function initGeminiChat() {
     event.preventDefault();
     await chatHistoryReady;
     const question = input.value.trim();
-    const apiKey = configuredApiKey || keyInput.value.trim();
 
-    if (!apiKey) {
-      addMessage("Vul eerst je Gemini API-key in.", "assistant");
-      keyInput.focus();
-      return;
-    }
     if (!question) return;
 
     addMessage(question, "user");
     await saveChatMessage("user", question);
     input.value = "";
     input.disabled = true;
-    const loadingMessage = addMessage("Even nadenken...", "assistant loading");
+    const loadingMessage = addMessage("", "assistant loading");
     conversation.push({ role: "user", parts: [{ text: question }] });
 
     try {
-      const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-3.8-flash:generateContent?key=${encodeURIComponent(apiKey)}`, {
+      const response = await fetch("/api/chat", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          systemInstruction: {
-            parts: [{ text: `Je bent de vriendelijke portfolio-assistent van Luc Meijerink. Beantwoord alleen de concrete vraag van de bezoeker in het Nederlands op basis van de actuele portfolio-context hieronder. Gebruik uitsluitend feiten uit deze context, tenzij de bezoeker expliciet om algemene uitleg vraagt. Als iets niet in de context staat, zeg dat eerlijk.
+          systemInstruction: `Je bent de vriendelijke portfolio-assistent van Luc Meijerink. Beantwoord alleen de concrete vraag van de bezoeker in het Nederlands op basis van de actuele portfolio-context hieronder. Gebruik uitsluitend feiten uit deze context, tenzij de bezoeker expliciet om algemene uitleg vraagt. Als iets niet in de context staat, zeg dat eerlijk.
 
 Houd elk antwoord overzichtelijk:
 - maximaal 2 korte alinea's of maximaal 5 korte bullets;
@@ -2310,24 +2594,35 @@ Houd elk antwoord overzichtelijk:
 - schrijf helder, vriendelijk en zonder lange inleiding.
 
 ACTUELE PORTFOLIO-CONTEXT:
-${getPortfolioContext()}` }]
-          },
+${getPortfolioContext()}`,
           contents: conversation
         })
       });
       const data = await response.json();
       if (!response.ok) throw new Error(data.error?.message || "Gemini kon geen antwoord geven.");
 
-      const answer = cleanAssistantAnswer(data.candidates?.[0]?.content?.parts?.map(part => part.text || "").join("") || "");
+      const rawAnswer = data.answer || "";
+      const answer = cleanAssistantAnswer(rawAnswer);
       if (!answer) throw new Error("Gemini gaf een leeg antwoord.");
       conversation.push({ role: "model", parts: [{ text: answer }] });
-      loadingMessage.textContent = answer;
       loadingMessage.classList.remove("loading");
+      loadingMessage.innerHTML = "";
+      const content = document.createElement("div");
+      content.className = "gemini-message-content";
+      content.textContent = answer;
+      loadingMessage.appendChild(content);
+      loadingMessage.appendChild(createCopyButton(answer));
+      messages.scrollTop = messages.scrollHeight;
       await saveChatMessage("assistant", answer);
     } catch (error) {
       conversation.pop();
-      loadingMessage.textContent = `Er ging iets mis: ${error.message}`;
       loadingMessage.classList.remove("loading");
+      loadingMessage.innerHTML = "";
+      const content = document.createElement("div");
+      content.className = "gemini-message-content";
+      content.textContent = `Er ging iets mis: ${error.message}`;
+      loadingMessage.appendChild(content);
+      messages.scrollTop = messages.scrollHeight;
     } finally {
       input.disabled = false;
       input.focus();
@@ -2618,6 +2913,7 @@ document.addEventListener("DOMContentLoaded", () => {
   initAddStoryForm();
   initAddLinkForm();
   initExportPdf();
+  syncPortfolioDataFromCloud();
 
   const storyModal = document.getElementById("story-detail-modal");
   if (storyModal) {
