@@ -634,7 +634,7 @@ function updateAdminButtonUI() {
   } else {
     adminToggleBtn.classList.remove("active");
     adminToggleBtn.innerHTML = `
-      <span>🔒 Admin Modus</span>
+      <span>Admin Modus</span>
     `;
     adminToggleBtn.title = "Klik om Admin Modus in te schakelen (uitsluitend geautoriseerd voor Luc).";
   }
@@ -678,6 +678,7 @@ function applyTheme(theme) {
 function initTimeline() {
   // Automatisch de juiste sprint selecteren op basis van huidige datum (Sprint 1 start op 7 sept)
   currentSprintIndex = getAutoSprintIndex();
+  initTimelineDragScroll();
   updateTimelineView();
 
   const prevBtn = document.getElementById("timeline-prev-btn");
@@ -700,6 +701,56 @@ function initTimeline() {
       }
     });
   }
+}
+
+function initTimelineDragScroll() {
+  const track = document.getElementById("timeline-steps-track");
+  if (!track || track.dataset.dragReady === "true") return;
+
+  track.dataset.dragReady = "true";
+  let isDragging = false;
+  let hasDragged = false;
+  let suppressNextClick = false;
+  let startX = 0;
+  let startScrollLeft = 0;
+
+  track.addEventListener("pointerdown", (event) => {
+    if (event.pointerType === "mouse" && event.button !== 0) return;
+    isDragging = true;
+    hasDragged = false;
+    startX = event.clientX;
+    startScrollLeft = track.scrollLeft;
+    track.classList.add("is-dragging");
+    track.setPointerCapture?.(event.pointerId);
+  });
+
+  track.addEventListener("pointermove", (event) => {
+    if (!isDragging) return;
+    const distance = event.clientX - startX;
+    if (Math.abs(distance) > 8) hasDragged = true;
+    track.scrollLeft = startScrollLeft - distance;
+  });
+
+  const stopDragging = (event) => {
+    if (!isDragging) return;
+    isDragging = false;
+    suppressNextClick = hasDragged;
+    track.classList.remove("is-dragging");
+    track.releasePointerCapture?.(event.pointerId);
+  };
+
+  track.addEventListener("pointerup", stopDragging);
+  track.addEventListener("pointercancel", stopDragging);
+  track.addEventListener("pointerleave", (event) => {
+    if (isDragging && event.pointerType === "mouse") stopDragging(event);
+  });
+  track.addEventListener("click", (event) => {
+    if (suppressNextClick) {
+      event.preventDefault();
+      event.stopPropagation();
+      suppressNextClick = false;
+    }
+  }, true);
 }
 
 function updateTimelineView() {
@@ -751,7 +802,7 @@ function renderTimelineSteps() {
 
   const calendarIdx = getAutoSprintIndex();
 
-  stepsContainer.innerHTML = sprintsData.map((sprint, idx) => {
+  stepsContainer.innerHTML = `<span class="timeline-track-line" aria-hidden="true"></span>${sprintsData.map((sprint, idx) => {
     const isSelected = idx === currentSprintIndex;
     const isCalendarCurrent = idx === calendarIdx;
 
@@ -767,14 +818,14 @@ function renderTimelineSteps() {
     }
 
     return `
-      <button class="timeline-step-node ${stateClass}" data-sprint-index="${idx}" title="${sprint.title} (${sprint.weeks} • ${sprint.dates})">
+      <button type="button" class="timeline-step-node ${stateClass}" data-sprint-index="${idx}" title="${sprint.title} (${sprint.weeks} • ${sprint.dates})" aria-label="Selecteer Sprint ${sprint.number}" aria-pressed="${isSelected}">
         <span class="step-badge">S${sprint.number}</span>
         <span class="step-label">${sprint.weeks}</span>
         <span class="step-date-label">${sprint.dates}</span>
         ${isCalendarCurrent ? '<span class="sprint-live-pill" title="Huidige sprint volgens kalender">Nu</span>' : ''}
       </button>
     `;
-  }).join('');
+  }).join('')}`;
 
   stepsContainer.querySelectorAll(".timeline-step-node").forEach(btn => {
     btn.addEventListener("click", () => {
@@ -789,9 +840,9 @@ function renderTimelineSteps() {
 function getStatusLabel(statusType) {
   switch (statusType) {
     case "completed": return "✓ Behaald (V)";
-    case "progress": return "⏳ In uitvoering";
-    case "review": return "📋 Afgerond / Ter review";
-    case "planned": return "📅 Gepland";
+    case "progress": return "In uitvoering";
+    case "review": return "Afgerond / Ter review";
+    case "planned": return "Gepland";
     default: return "Gepland";
   }
 }
@@ -810,9 +861,9 @@ function renderActiveSprint() {
         <div class="sprint-meta-chips">
           <span class="sprint-badge-pill">Sprint ${sprint.number} • ${sprint.duration}</span>
           <span class="sprint-weeks-pill">${sprint.weeks}</span>
-          <span class="sprint-dates-pill">📅 ${sprint.dates}</span>
+          <span class="sprint-dates-pill">${sprint.dates}</span>
           <span class="sprint-status-tag ${isCurrentLive ? 'active' : sprint.statusType}">
-            ${isCurrentLive ? '🔥 Actief / In uitvoering (Vandaag)' : '📅 ' + sprint.status}
+            ${isCurrentLive ? 'Actief / In uitvoering (Vandaag)' : sprint.status}
           </span>
         </div>
         <h3 class="sprint-banner-title">${escapeHtml(sprint.title)}</h3>
@@ -843,7 +894,7 @@ function renderActiveSprint() {
     <!-- Stories Grid van de geselecteerde sprint -->
     ${sprint.stories.length === 0 ? `
       <div class="empty-sprint-container">
-        <div class="empty-sprint-icon">📌</div>
+        <div class="empty-sprint-icon" aria-hidden="true"></div>
         <h4 class="empty-sprint-title">Nog geen stories in Sprint ${sprint.number}</h4>
         <p class="empty-sprint-desc">
           Deze sprint (${sprint.weeks} • ${sprint.dates}) is momenteel leeg. Als beheerder kun je eenvoudig nieuwe Research Stories (RS) of User Stories (US) aanmaken.
@@ -873,8 +924,8 @@ function renderActiveSprint() {
                   <select class="admin-inline-status-select" data-story-id="${story.id}" title="Wijzig status (Admin)">
                     <option value="completed" ${story.statusType === 'completed' ? 'selected' : ''}>✓ Behaald (V)</option>
                     <option value="progress" ${story.statusType === 'progress' ? 'selected' : ''}>⏳ In uitvoering</option>
-                    <option value="review" ${story.statusType === 'review' ? 'selected' : ''}>📋 Afgerond / Ter review</option>
-                    <option value="planned" ${story.statusType === 'planned' ? 'selected' : ''}>📅 Gepland</option>
+                    <option value="review" ${story.statusType === 'review' ? 'selected' : ''}>Afgerond / Ter review</option>
+                    <option value="planned" ${story.statusType === 'planned' ? 'selected' : ''}>Gepland</option>
                   </select>
                 ` : `
                   <span class="status-pill ${story.statusType}">
@@ -1233,7 +1284,7 @@ function updateMatrixAndScore() {
       adminToolbarEl.className = "matrix-admin-toolbar is-admin-active";
       adminToolbarEl.innerHTML = `
         <div class="matrix-admin-info">
-          <span class="matrix-admin-icon">✏️</span>
+          <span class="matrix-admin-icon" aria-hidden="true"></span>
           <div>
             <h4 class="matrix-admin-title">
               Admin Beoordelingsmodus
@@ -1246,7 +1297,7 @@ function updateMatrixAndScore() {
         </div>
         <div class="matrix-admin-actions">
           <span class="matrix-toolbar-counter" title="Totaal aantal toegekende voldoendes">
-            🎯 <span class="count-highlight">${totalEarnedOverall}</span> / 18 Voldoendes
+            <span class="count-highlight">${totalEarnedOverall}</span> / 18 Voldoendes
           </span>
           <button type="button" id="btn-matrix-reset" class="matrix-toolbar-btn danger" title="Wis alle handmatige voldoendes">
             Wis Alles
@@ -1282,7 +1333,7 @@ function updateMatrixAndScore() {
       adminToolbarEl.className = "matrix-admin-toolbar";
       adminToolbarEl.innerHTML = `
         <div class="matrix-admin-info">
-          <span class="matrix-admin-icon">🔒</span>
+          <span class="matrix-admin-icon" aria-hidden="true"></span>
           <div>
             <h4 class="matrix-admin-title">Alleen-lezen Matrixweergave</h4>
             <p class="matrix-admin-desc">
@@ -1292,7 +1343,7 @@ function updateMatrixAndScore() {
         </div>
         <div class="matrix-admin-actions">
           <span class="matrix-toolbar-counter">
-            🎯 <span class="count-highlight">${totalEarnedOverall}</span> / 18 Voldoendes
+            <span class="count-highlight">${totalEarnedOverall}</span> / 18 Voldoendes
           </span>
         </div>
       `;
@@ -1323,7 +1374,7 @@ function updateMatrixAndScore() {
     } else if (totalEarnedOverall < 18) {
       matrixProgressDesc.textContent = `${totalEarnedOverall} van de 18 benodigde voldoendes behaald (${18 - totalEarnedOverall} te gaan)`;
     } else {
-      matrixProgressDesc.textContent = "Alle 18 voldoendes behaald! Volledig gekwalificeerd voor assessment 🏆";
+      matrixProgressDesc.textContent = "Alle 18 voldoendes behaald! Volledig gekwalificeerd voor assessment.";
     }
   }
 
@@ -1385,7 +1436,7 @@ function updateMatrixAndScore() {
       gaugeStatusPill.textContent = `Goede voortgang (${totalEarnedOverall} / 18)`;
     } else {
       gaugeStatusPill.classList.add("achieved");
-      gaugeStatusPill.textContent = `Volledig assessment behaald (18 / 18)! 🏆`;
+      gaugeStatusPill.textContent = "Volledig assessment behaald (18 / 18)!";
     }
   }
 
@@ -1451,7 +1502,7 @@ function renderStories() {
     const isLsFilter = currentTypeFilter === "LS";
     container.innerHTML = `
       <div style="grid-column: 1 / -1; text-align: center; padding: 3rem 1.5rem; background-color: var(--bg-card); border: 1px dashed var(--border-subtle); border-radius: var(--radius-lg);">
-        <div style="font-size: 2.25rem; margin-bottom: 0.75rem;">${isLsFilter ? '🎓' : '🔍'}</div>
+        <div class="empty-filter-icon" aria-hidden="true"></div>
         <p style="font-size: 1.15rem; font-weight: 700; color: var(--text-primary); margin-bottom: 0.5rem;">
           ${isLsFilter ? 'Nog geen Learning Stories (LS) aangemaakt' : 'Geen stories of bewijzen gevonden'}
         </p>
@@ -1495,8 +1546,8 @@ function renderStories() {
             <select class="admin-inline-status-select" data-story-id="${story.id}" title="Wijzig status (Admin)">
               <option value="completed" ${story.statusType === 'completed' ? 'selected' : ''}>✓ Behaald (V)</option>
               <option value="progress" ${story.statusType === 'progress' ? 'selected' : ''}>⏳ In uitvoering</option>
-              <option value="review" ${story.statusType === 'review' ? 'selected' : ''}>📋 Afgerond / Ter review</option>
-              <option value="planned" ${story.statusType === 'planned' ? 'selected' : ''}>📅 Gepland</option>
+              <option value="review" ${story.statusType === 'review' ? 'selected' : ''}>Afgerond / Ter review</option>
+              <option value="planned" ${story.statusType === 'planned' ? 'selected' : ''}>Gepland</option>
             </select>
           ` : `
             <span class="status-pill ${story.statusType}">
@@ -1579,11 +1630,11 @@ function renderStories() {
 
 function getExternalIcon(type) {
   switch (type) {
-    case "onedrive": return "📁";
-    case "github": return "💻";
+    case "onedrive": return "XLSX";
+    case "github": return "GitHub";
     case "vercel": return "▲";
     case "youtube": return "▶";
-    default: return "🔗";
+    default: return "Link";
   }
 }
 
@@ -1704,8 +1755,8 @@ function openStoryModal(storyId) {
           <select id="modal-status-select" class="admin-inline-status-select">
             <option value="completed" ${story.statusType === 'completed' ? 'selected' : ''}>✓ Behaald (V)</option>
             <option value="progress" ${story.statusType === 'progress' ? 'selected' : ''}>⏳ In uitvoering</option>
-            <option value="review" ${story.statusType === 'review' ? 'selected' : ''}>📋 Afgerond / Ter review</option>
-            <option value="planned" ${story.statusType === 'planned' ? 'selected' : ''}>📅 Gepland</option>
+            <option value="review" ${story.statusType === 'review' ? 'selected' : ''}>Afgerond / Ter review</option>
+            <option value="planned" ${story.statusType === 'planned' ? 'selected' : ''}>Gepland</option>
           </select>
         ` : `
           <span class="status-pill ${story.statusType}">
@@ -1722,7 +1773,7 @@ function openStoryModal(storyId) {
 
     <div class="modal-section">
       <h3 class="modal-section-title">
-        <span>📋</span> Acceptatiecriteria
+        Acceptatiecriteria
       </h3>
       <ol class="criteria-ol">
         ${story.acceptatiecriteria && story.acceptatiecriteria.length > 0 ? story.acceptatiecriteria.map(ac => `<li>${escapeHtml(ac)}</li>`).join('') : '<li>Nog geen acceptatiecriteria gespecificeerd</li>'}
@@ -1731,7 +1782,7 @@ function openStoryModal(storyId) {
 
     <div class="modal-section">
       <h3 class="modal-section-title">
-        <span>🎯</span> Kwaliteitscriteria
+        Kwaliteitscriteria
       </h3>
       <ol class="criteria-ol">
         ${story.kwaliteitscriteria && story.kwaliteitscriteria.length > 0 ? story.kwaliteitscriteria.map(kc => `<li>${escapeHtml(kc)}</li>`).join('') : '<li>Nog geen kwaliteitscriteria gespecificeerd</li>'}
@@ -1741,7 +1792,7 @@ function openStoryModal(storyId) {
     <div class="modal-section">
       <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 0.5rem; flex-wrap: wrap; gap: 0.5rem;">
         <h3 class="modal-section-title" style="margin-bottom: 0;">
-          <span>🌐</span> Bewijslast & Externe Bestanden
+          Bewijslast & Externe Bestanden
         </h3>
         ${isAdminMode ? `
           <button class="add-story-file-btn" id="modal-btn-add-link">
@@ -2152,7 +2203,7 @@ function renderDashboardFilesHub() {
   if (allFiles.length === 0) {
     container.innerHTML = `
       <div class="files-hub-empty">
-        <div class="empty-hub-icon">📂</div>
+        <div class="empty-hub-icon" aria-hidden="true"></div>
         <h4 class="empty-hub-title">Nog geen documenten of bewijsstukken gekoppeld</h4>
         <p class="empty-hub-desc">
           Zodra er bestanden (zoals OneDrive PDF onderzoeksrapporten, Python / GitHub code repositories, Vercel prototypes of YouTube demo's) aan stories worden gekoppeld, verschijnen ze hier in één centrale lijst zodat docenten en assessoren niet hoeven te zoeken.
@@ -2173,7 +2224,7 @@ function renderDashboardFilesHub() {
   // Render lijst met bestanden inclusief duidelijke referentie naar story
   container.innerHTML = `
     <div class="files-hub-info-banner">
-      <span class="hub-info-icon">⚡</span>
+      <span class="hub-info-icon" aria-hidden="true"></span>
       <span class="hub-info-text">
         <strong>Direct gekoppeld aan stories:</strong> Ieder bestand dat je bij een story toevoegt, verschijnt automatisch hier. Docenten kunnen direct het bewijs openen of op de gekoppelde story klikken om alle criteria te zien.
       </span>
@@ -2221,7 +2272,7 @@ function renderDashboardFilesHub() {
             </a>
             ${isAdminMode ? `
               <button class="btn-delete-file" data-story-id="${file.storyId}" data-link-idx="${file.linkIndex}" title="Verwijder dit bestand van ${escapeHtml(file.storyCode)}">
-                🗑️
+                Verwijder
               </button>
             ` : ''}
           </div>
@@ -2731,8 +2782,8 @@ function renderCurrentFocusWidget() {
   if (!focusStory) {
     container.innerHTML = `
       <div class="focus-empty-state">
-        <span class="focus-empty-icon">🎯</span>
-        <p class="focus-empty-text">Geen actieve story in uitvoering in Sprint ${activeSprint.number}. Bekijk de sprint timeline voor geplande taken.</p>
+        <span class="focus-empty-icon" aria-hidden="true"></span>
+        <p class="focus-empty-text">Geen actieve story in uitvoering in Sprint ${activeSprint.number}. Bekijk de sprint tijdlijn voor geplande taken.</p>
       </div>
     `;
     return;
@@ -2743,7 +2794,7 @@ function renderCurrentFocusWidget() {
       <div class="focus-story-top">
         <span class="focus-code-badge ${focusStory.type.toLowerCase()}">${escapeHtml(focusStory.code)}</span>
         <span class="focus-status-tag">
-          <span class="focus-spinner-icon">⏳</span> ${escapeHtml(focusStory.status || "In uitvoering")}
+          <span class="focus-spinner-icon" aria-hidden="true"></span> ${escapeHtml(focusStory.status || "In uitvoering")}
         </span>
       </div>
       <h4 class="focus-story-title">${escapeHtml(focusStory.title)}</h4>
@@ -2926,6 +2977,40 @@ function applySiteContent() {
     dashboardLead.textContent = content.pages.dashboard.heroLead;
   }
 
+  const dashboardButtons = content.pages?.dashboard?.buttons;
+  const dashboardButtonSelectors = {
+    about: '.dash-actions-row a[href="#over-mij"] span:first-child',
+    documents: '.dash-actions-row a[href="#documenten"] span:first-child',
+    timeline: '.dash-actions-row a[href="#timeline"] span:first-child',
+    learning: '.dash-actions-row a[href="#leeruitkomsten"] span:first-child'
+  };
+  Object.entries(dashboardButtonSelectors).forEach(([key, selector]) => {
+    const buttonText = document.querySelector(selector);
+    if (buttonText && dashboardButtons?.[key]) buttonText.textContent = dashboardButtons[key];
+  });
+
+  const dashboardFeature = content.pages?.dashboard?.feature;
+  const dashboardFeatureLabel = document.querySelector(".dashboard-feature-copy .section-tag");
+  const dashboardFeatureTitle = document.querySelector(".dashboard-feature-copy h2");
+  const dashboardFeatureText = document.querySelector(".dashboard-feature-copy p");
+  const dashboardFeatureLink = document.querySelector(".dashboard-feature-link");
+  const dashboardFeatureImage = document.querySelector(".dashboard-feature-image");
+  if (dashboardFeatureLabel && dashboardFeature?.label) dashboardFeatureLabel.textContent = dashboardFeature.label;
+  if (dashboardFeatureTitle && dashboardFeature?.title) dashboardFeatureTitle.textContent = dashboardFeature.title;
+  if (dashboardFeatureText && dashboardFeature?.text) dashboardFeatureText.textContent = dashboardFeature.text;
+  if (dashboardFeatureLink && dashboardFeature?.link) {
+    dashboardFeatureLink.firstChild.textContent = `${dashboardFeature.link} `;
+  }
+  if (dashboardFeatureImage && dashboardFeature?.image) {
+    dashboardFeatureImage.src = dashboardFeature.image.src;
+    dashboardFeatureImage.alt = dashboardFeature.image.alt;
+  }
+  const dashboardImage = document.querySelector(".dashboard-intro-image");
+  if (dashboardImage && content.pages?.dashboard?.image) {
+    dashboardImage.src = content.pages.dashboard.image.src;
+    dashboardImage.alt = content.pages.dashboard.image.alt;
+  }
+
   const aboutTitle = document.querySelector("#over-mij .section-title");
   if (aboutTitle && content.pages?.about?.sectionTitle) {
     aboutTitle.textContent = content.pages.about.sectionTitle;
@@ -2936,20 +3021,55 @@ function applySiteContent() {
     aboutSubtitle.textContent = content.pages.about.subtitle;
   }
 
-  const aboutIntroName = document.querySelector("#over-mij .about-intro-card h3");
-  if (aboutIntroName && content.pages?.about?.introName) {
-    aboutIntroName.textContent = content.pages.about.introName;
+  const aboutIntroLabel = document.querySelector("#over-mij .about-intro-copy .section-tag");
+  if (aboutIntroLabel && content.pages?.about?.introLabel) {
+    aboutIntroLabel.textContent = content.pages.about.introLabel;
   }
 
-  const aboutIntroRole = document.querySelector("#over-mij .about-role");
+  const aboutIntroRole = document.querySelector("#over-mij .about-intro-copy h3");
   if (aboutIntroRole && content.pages?.about?.introRole) {
     aboutIntroRole.textContent = content.pages.about.introRole;
   }
 
-  const aboutIntroText = document.querySelector("#over-mij .about-intro-card p:not(.about-role)");
+  const aboutIntroText = document.querySelector("#over-mij .about-intro-copy p");
   if (aboutIntroText && content.pages?.about?.introText) {
     aboutIntroText.textContent = content.pages.about.introText;
   }
+
+  const aboutDetails = document.querySelectorAll("#over-mij .about-details-row > div");
+  content.pages?.about?.details?.forEach((detail, index) => {
+    const detailElement = aboutDetails[index];
+    if (!detailElement) return;
+    const label = detailElement.querySelector(".about-detail-label");
+    const title = detailElement.querySelector("strong");
+    const text = detailElement.querySelector("p");
+    if (label) label.textContent = detail.label;
+    if (title) title.textContent = detail.title;
+    if (text) text.textContent = detail.text;
+  });
+
+  const aboutImage = document.querySelector("#over-mij .about-image");
+  if (aboutImage && content.pages?.about?.image) {
+    aboutImage.src = content.pages.about.image.src;
+    aboutImage.alt = content.pages.about.image.alt;
+  }
+
+  const aboutContact = content.pages?.about?.contact;
+  const aboutContactLabel = document.querySelector("#over-mij .about-contact-header .section-tag");
+  const aboutContactTitle = document.querySelector("#over-mij .about-contact-header h3");
+  if (aboutContactLabel && aboutContact?.label) aboutContactLabel.textContent = aboutContact.label;
+  if (aboutContactTitle && aboutContact?.title) aboutContactTitle.textContent = aboutContact.title;
+  const contactLabelSelectors = {
+    emailLabel: "#over-mij .email-btn .btn-sublabel",
+    email: "#over-mij .email-btn .btn-mainlabel",
+    linkedinLabel: "#over-mij .linkedin-btn span:not(.btn-arrow)",
+    githubLabel: "#over-mij .github-btn span:not(.btn-arrow)",
+    vercelLabel: "#over-mij .vercel-btn span:not(.btn-arrow)"
+  };
+  Object.entries(contactLabelSelectors).forEach(([key, selector]) => {
+    const element = document.querySelector(selector);
+    if (element && aboutContact?.[key]) element.textContent = aboutContact[key];
+  });
 
   const aboutMotivationTitle = document.querySelector("#over-mij .about-story-block h3");
   if (aboutMotivationTitle && content.pages?.about?.motivationTitle) {

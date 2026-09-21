@@ -204,7 +204,8 @@ button, input, select {
 
 .about-intro-card,
 .about-detail-card,
-.about-story-block {
+.about-story-block,
+.about-contact-panel {
   border: 1px solid var(--border-subtle);
   border-radius: var(--radius-md);
   background: var(--bg-card);
@@ -297,6 +298,145 @@ button, input, select {
   .about-intro-card,
   .about-story-block {
     padding: 1.35rem;
+  }
+}
+
+/* Over mij volgt dezelfde open, rustige compositie als Home. */
+#over-mij,
+#timeline {
+  background-color: var(--sec-bg-white);
+}
+
+.about-intro-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(280px, 400px);
+  gap: clamp(2rem, 6vw, 6rem);
+  align-items: center;
+  margin-bottom: 3.25rem;
+}
+
+.about-intro-copy {
+  max-width: 680px;
+}
+
+.about-intro-copy h3 {
+  margin: 0.65rem 0 0.85rem;
+  color: var(--text-primary);
+  font-family: var(--font-heading);
+  font-size: clamp(1.5rem, 3vw, 2.2rem);
+  line-height: 1.2;
+}
+
+.about-intro-copy p {
+  max-width: 620px;
+  margin: 0;
+  color: var(--text-secondary);
+  line-height: 1.7;
+}
+
+.about-image-wrap {
+  overflow: hidden;
+  border-radius: var(--radius-lg);
+}
+
+.about-image {
+  display: block;
+  width: 100%;
+  aspect-ratio: 4 / 3;
+  object-fit: cover;
+}
+
+.about-details-row {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 2rem;
+  padding: 2rem 0;
+  border-top: 1px solid var(--border-subtle);
+  border-bottom: 1px solid var(--border-subtle);
+}
+
+.about-details-row > div {
+  min-width: 0;
+}
+
+.about-details-row strong {
+  display: block;
+  margin-bottom: 0.35rem;
+  color: var(--text-primary);
+  font-family: var(--font-heading);
+}
+
+.about-details-row p {
+  margin: 0;
+  color: var(--text-secondary);
+  font-size: 0.88rem;
+  line-height: 1.5;
+}
+
+.about-contact-section,
+.about-story-block {
+  margin-top: 2.5rem;
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+}
+
+.about-contact-header h3 {
+  margin: 0.55rem 0 1rem;
+  color: var(--text-primary);
+  font-family: var(--font-heading);
+  font-size: 1.35rem;
+}
+
+.about-contact-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem 2rem;
+}
+
+.about-contact-actions .social-btn {
+  width: max-content;
+  min-height: 2rem;
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: transparent !important;
+  color: #285238 !important;
+  box-shadow: none;
+}
+
+.about-contact-actions .social-btn:hover {
+  background: transparent !important;
+  color: var(--accent-primary) !important;
+  transform: none;
+}
+
+.about-story-block {
+  padding-top: 2.5rem;
+  border-top: 1px solid var(--border-subtle);
+}
+
+.about-story-block h3 {
+  margin: 0.55rem 0 0.75rem;
+  color: var(--text-primary);
+}
+
+.about-story-block p {
+  max-width: 760px;
+  margin: 0;
+  line-height: 1.7;
+}
+
+@media (max-width: 760px) {
+  .about-intro-layout,
+  .about-details-row {
+    grid-template-columns: 1fr;
+  }
+
+  .about-image-wrap {
+    max-width: 420px;
   }
 }
 
@@ -777,7 +917,7 @@ button, input, select {
 
 @media (min-width: 1024px) {
   .dashboard-grid {
-    grid-template-columns: 1fr 390px;
+    grid-template-columns: 1fr;
     gap: 2.5rem;
   }
 }
@@ -861,7 +1001,7 @@ button, input, select {
   line-height: 1.25;
   letter-spacing: -0.02em;
   color: var(--text-primary);
-  margin-bottom: 0.85rem;
+  margin-bottom: 1.35rem;
   word-break: break-word;
   overflow-wrap: break-word;
   max-width: 100%;
@@ -871,10 +1011,56 @@ button, input, select {
   font-size: clamp(0.92rem, 2.8vw, 1.05rem);
   color: var(--text-secondary);
   line-height: 1.65;
-  margin-bottom: 1.75rem;
+  margin: 0;
   word-break: break-word;
   overflow-wrap: break-word;
   max-width: 100%;
+}
+
+.dashboard-intro-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(280px, 360px);
+  gap: clamp(2rem, 5vw, 5rem);
+  align-items: center;
+  margin-bottom: 2.5rem;
+}
+
+.dashboard-intro-copy {
+  width: 100%;
+  min-width: 0;
+}
+
+.dashboard-intro-image-wrap {
+  width: min(100%, 400px);
+  aspect-ratio: 1;
+  justify-self: end;
+  overflow: hidden;
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-lg);
+  background: var(--bg-surface-elevated);
+}
+
+.dashboard-intro-image {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+@media (max-width: 760px) {
+  .dashboard-intro-grid {
+    grid-template-columns: 1fr;
+    gap: 1.5rem;
+  }
+
+  .dashboard-intro-image-wrap {
+    width: min(100%, 280px);
+    justify-self: start;
+  }
+
+  .dashboard-intro-image {
+    aspect-ratio: 1;
+  }
 }
 
 /* Dashboard KPI & Assessment Gauge Overview */
@@ -1663,6 +1849,156 @@ button, input, select {
 .btn-dash.outline:hover {
   color: var(--accent-primary);
   border-color: var(--accent-border);
+}
+
+/* Rustige groene variatie voor de drie primaire home-acties */
+.dash-actions-row > .btn-dash {
+  border-color: #789b83;
+  box-shadow: none;
+}
+
+.dash-actions-row > .btn-dash {
+  background-color: #dce9df;
+  color: #285238;
+}
+
+.dash-actions-row > .btn-dash:hover {
+  background-color: #527f60;
+  border-color: #527f60;
+  color: #ffffff;
+  transform: translateY(-1px);
+}
+
+.dash-actions-row > .btn-dash:hover {
+  background-color: #c7dccb;
+  border-color: #789b83;
+  color: #285238;
+}
+
+/* Home-links sluiten aan op de knop onder het tweede tekstblok. */
+.dash-actions-row {
+  display: grid;
+  grid-template-columns: repeat(4, max-content);
+  justify-content: start;
+  gap: 0.75rem 2.5rem;
+  margin-top: 1rem;
+}
+
+.dash-actions-row > .btn-dash {
+  width: max-content;
+  justify-self: start;
+  display: grid;
+  grid-template-columns: max-content auto;
+  justify-content: initial;
+  gap: 0.45rem;
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  color: #285238;
+  box-shadow: none;
+  font-weight: 700;
+}
+
+.dash-actions-row > .btn-dash span:last-child {
+  margin-left: 0.15rem;
+  flex-shrink: 0;
+  justify-self: end;
+  transition: transform var(--transition-fast);
+}
+
+.dash-actions-row > .btn-dash:hover,
+.dash-actions-row > .btn-dash:nth-child(even):hover {
+  background: transparent;
+  border-color: transparent;
+  color: var(--accent-primary);
+  transform: none;
+}
+
+.dash-actions-row > .btn-dash:hover span:last-child {
+  transform: translateX(3px);
+}
+
+@media (max-width: 760px) {
+  .dash-actions-row {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 460px) {
+  .dash-actions-row {
+    grid-template-columns: 1fr;
+  }
+
+  .dash-actions-row > .btn-dash {
+    width: max-content;
+  }
+}
+
+.dashboard-feature-divider {
+  width: 100%;
+  height: 1px;
+  margin: 3.5rem 0 2.75rem;
+  background: linear-gradient(90deg, transparent, var(--border-strong), transparent);
+}
+
+.dashboard-feature-block {
+  display: grid;
+  grid-template-columns: minmax(180px, 0.75fr) minmax(0, 1.25fr);
+  gap: 2rem;
+  align-items: center;
+}
+
+.dashboard-feature-image-wrap {
+  overflow: hidden;
+  border-radius: var(--radius-lg);
+  background: var(--bg-surface-elevated);
+  box-shadow: var(--shadow-sm);
+}
+
+.dashboard-feature-image {
+  width: 100%;
+  aspect-ratio: 1;
+  object-fit: cover;
+}
+
+.dashboard-feature-copy h2 {
+  margin: 0.55rem 0 0.7rem;
+  color: var(--text-primary);
+  font-family: var(--font-heading);
+  font-size: clamp(1.35rem, 3vw, 2rem);
+  line-height: 1.2;
+}
+
+.dashboard-feature-copy p {
+  max-width: 620px;
+  margin: 0;
+  color: var(--text-secondary);
+  line-height: 1.7;
+}
+
+.dashboard-feature-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  margin-top: 1rem;
+  color: #285238;
+  font-weight: 700;
+}
+
+.dashboard-feature-link:hover {
+  color: var(--accent-primary);
+}
+
+@media (max-width: 700px) {
+  .dashboard-feature-block {
+    grid-template-columns: 1fr;
+    gap: 1.35rem;
+  }
+
+  .dashboard-feature-image-wrap {
+    max-width: 280px;
+  }
 }
 
 /* RECHTERKANT: Professioneel Profielpaneel met Profielfoto Bovenaan */
@@ -3495,17 +3831,30 @@ button, input, select {
   border-bottom: 1px solid var(--border-subtle);
 }
 
+/* Open timeline styling shared with Home, Over mij and Contact. */
+.timeline-page {
+  background-color: var(--sec-bg-white);
+}
+
+.timeline-page .section-title {
+  color: var(--text-primary);
+}
+
+.timeline-page .section-subtitle {
+  color: var(--text-secondary);
+}
+
 .timeline-nav-bar {
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 0.75rem;
-  background-color: var(--bg-card);
-  border: 1px solid var(--border-subtle);
-  border-radius: var(--radius-lg);
-  padding: 0.85rem 1rem;
-  box-shadow: var(--shadow-sm);
-  margin-bottom: 1rem;
+  background: transparent;
+  border: 0;
+  border-radius: 0;
+  padding: 1.25rem 0 0;
+  box-shadow: none;
+  margin-bottom: 1.25rem;
 }
 
 .timeline-nav-arrow {
@@ -3514,9 +3863,9 @@ button, input, select {
   gap: 0.5rem;
   padding: 0.65rem 1rem;
   border-radius: var(--radius-md);
-  background-color: var(--bg-surface-elevated);
-  border: 1px solid var(--border-subtle);
-  color: var(--text-primary);
+  background: transparent;
+  border: 0;
+  color: #285238;
   font-weight: 700;
   font-size: 0.875rem;
   cursor: pointer;
@@ -3526,10 +3875,11 @@ button, input, select {
 }
 
 .timeline-nav-arrow:hover:not(:disabled) {
-  background-color: var(--accent-primary);
-  color: #ffffff;
-  border-color: var(--accent-primary);
-  box-shadow: 0 2px 5px rgba(37, 99, 235, 0.25);
+  background: transparent;
+  color: var(--accent-primary);
+  border-color: transparent;
+  box-shadow: none;
+  transform: translateX(2px);
 }
 
 .timeline-nav-arrow:disabled,
@@ -3540,33 +3890,91 @@ button, input, select {
 }
 
 .timeline-steps-track {
+  position: relative;
+  flex: 1;
   display: flex;
   align-items: center;
-  gap: 0.5rem;
+  gap: 4rem;
   overflow-x: auto;
-  padding: 0.25rem 0.5rem;
-  scrollbar-width: thin;
+  padding: 1.5rem 1rem 1.25rem;
+  scrollbar-width: none;
   -webkit-overflow-scrolling: touch;
+  cursor: grab;
+  user-select: none;
+  touch-action: pan-y;
+}
+
+.timeline-steps-track::-webkit-scrollbar {
+  display: none;
+}
+
+.timeline-track-line {
+  content: "";
+  position: absolute;
+  top: 50%;
+  left: 1.25rem;
+  width: calc(8 * 156px + 7 * 4rem);
+  height: 2px;
+  background: #b9cfbd;
+  transform: translateY(-50%);
+  pointer-events: none;
+}
+
+.timeline-steps-track.is-dragging {
+  cursor: grabbing;
+  scroll-behavior: auto;
 }
 
 .timeline-step-node {
+  position: relative;
+  z-index: 1;
   display: flex;
   flex-direction: column;
   align-items: center;
+  justify-content: center;
   gap: 0.2rem;
-  background-color: var(--bg-surface);
-  border: 1px solid var(--border-subtle);
-  border-radius: var(--radius-md);
-  padding: 0.5rem 0.75rem;
+  background: #9dbda3;
+  border: 0;
+  border-radius: 0;
+  padding: 0.7rem 1.2rem;
+  clip-path: polygon(14% 0, 100% 0, 86% 100%, 0 100%);
   cursor: pointer;
-  transition: all var(--transition-fast);
-  min-width: 82px;
+  transition: transform var(--transition-fast), filter var(--transition-fast), background-color var(--transition-fast);
+  width: 156px;
+  min-width: 156px;
+  height: 108px;
+  min-height: 108px;
   flex-shrink: 0;
+  filter: drop-shadow(0 4px 5px rgba(40, 82, 56, 0.28));
+  outline: 2px solid rgba(40, 82, 56, 0.38);
+  outline-offset: 4px;
+  isolation: isolate;
+}
+
+.timeline-step-node::before {
+  content: "";
+  position: absolute;
+  inset: 2px;
+  z-index: 0;
+  background: var(--sec-bg-white);
+  clip-path: polygon(14% 0, 100% 0, 86% 100%, 0 100%);
+  pointer-events: none;
+}
+
+.timeline-step-node > * {
+  position: relative;
+  z-index: 1;
 }
 
 .timeline-step-node:hover {
-  border-color: var(--accent-border);
-  background-color: var(--bg-surface-elevated);
+  background: #527f60;
+  transform: translateY(-3px);
+  filter: drop-shadow(0 7px 7px rgba(40, 82, 56, 0.24));
+}
+
+.timeline-step-node:focus-visible {
+  outline: 3px solid #285238;
+  outline-offset: 5px;
 }
 
 .timeline-step-node .step-badge {
@@ -3582,14 +3990,26 @@ button, input, select {
   font-weight: 500;
 }
 
+.timeline-step-node .step-date-label {
+  white-space: nowrap;
+  font-size: 0.62rem;
+}
+
 .timeline-step-node.selected {
-  background-color: var(--accent-light);
-  border-color: var(--accent-primary);
-  box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.25);
+  background-color: #527f60;
+  outline: 3px solid #285238;
+  outline-offset: 5px;
+  filter: drop-shadow(0 7px 8px rgba(40, 82, 56, 0.28));
 }
 
 .timeline-step-node.selected .step-badge {
-  color: var(--accent-primary);
+  color: #285238;
+}
+
+.timeline-step-node.selected .step-label,
+.timeline-step-node.selected .step-date-label {
+  color: #285238;
+  font-weight: 800;
 }
 
 .timeline-step-node.past {
@@ -4444,6 +4864,110 @@ button, input, select {
   box-shadow: var(--shadow-sm);
 }
 
+/* Contact volgt de open compositie van Home en Over mij. */
+.contact-page .contact-grid {
+  grid-template-columns: minmax(0, 1.1fr) minmax(280px, 0.9fr);
+  gap: clamp(3rem, 8vw, 7rem);
+  align-items: start;
+}
+
+.contact-page .contact-card,
+.contact-page .code-export-box {
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+}
+
+.contact-page .contact-card h3,
+.contact-page .code-export-box h3 {
+  margin: 0 0 0.85rem !important;
+  color: var(--text-primary) !important;
+  font-family: var(--font-heading);
+  font-size: 1.45rem !important;
+  line-height: 1.2;
+}
+
+.contact-page .contact-card > p,
+.contact-page .code-export-intro {
+  max-width: 620px;
+  margin: 0;
+  color: var(--text-secondary) !important;
+  font-size: 0.98rem !important;
+  line-height: 1.7;
+}
+
+.contact-page .contact-channels {
+  gap: 0;
+  margin-top: 1.75rem;
+}
+
+.contact-page .channel-item {
+  display: flex;
+  padding: 1rem 0;
+  border: 0;
+  border-top: 1px solid var(--border-subtle);
+  border-radius: 0;
+  background: transparent;
+  transition: color var(--transition-fast), padding-left var(--transition-fast);
+}
+
+.contact-page .channel-item:last-child {
+  border-bottom: 1px solid var(--border-subtle);
+}
+
+.contact-page .channel-item:hover {
+  border-color: var(--border-subtle);
+  background: transparent;
+  transform: none;
+  padding-left: 0.4rem;
+}
+
+.contact-page .channel-icon {
+  width: 2rem;
+  height: 2rem;
+  border: 1px solid var(--border-subtle);
+  border-radius: 50%;
+  background: var(--bg-surface-elevated);
+}
+
+.contact-page .channel-info h4 {
+  color: #285238;
+}
+
+.contact-page .channel-info p {
+  color: var(--text-muted);
+}
+
+.contact-page .code-file-list {
+  gap: 0;
+  margin-top: 1.75rem;
+}
+
+.contact-page .file-row {
+  padding: 1rem 0;
+  border-width: 1px 0 0;
+  border-radius: 0;
+  background: transparent;
+}
+
+.contact-page .file-row:last-child {
+  border-bottom: 1px solid var(--border-subtle);
+}
+
+.contact-page .file-badge {
+  background: var(--accent-light);
+  color: #285238;
+}
+
+@media (max-width: 799px) {
+  .contact-page .contact-grid {
+    grid-template-columns: 1fr;
+    gap: 3rem;
+  }
+}
+
 .contact-channels {
   display: flex;
   flex-direction: column;
@@ -4570,6 +5094,26 @@ button, input, select {
 .footer-meta {
   font-size: 0.85rem;
   color: var(--text-muted);
+}
+
+.footer-qr-wrap {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.footer-qr-box {
+  margin-top: 0;
+  width: min(100%, 360px);
+  background: transparent;
+  border-color: transparent;
+  box-shadow: none;
+}
+
+.footer-qr-box:hover {
+  background: transparent;
+  border-color: transparent;
+  box-shadow: none;
 }
 
 .footer-links {
@@ -4805,6 +5349,59 @@ button, input, select {
 
 .timeline-story-card:hover .story-card-click-hint {
   background-color: rgba(37, 99, 235, 0.15);
+}
+
+/* Timeline detail remains open and editorial below the sprint line. */
+.timeline-page .sprint-detail-banner {
+  padding: 1.75rem 0 2rem;
+  border: 0;
+  border-bottom: 1px solid var(--border-subtle);
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+}
+
+.timeline-page .sprint-stat-pill {
+  background: transparent;
+  border: 0;
+  border-radius: 0;
+  padding: 0;
+}
+
+.timeline-page .timeline-story-card {
+  border-color: var(--border-subtle);
+  border-radius: var(--radius-md);
+  background: var(--bg-card);
+  box-shadow: none;
+}
+
+.timeline-page .timeline-story-card:hover {
+  border-color: #9dbda3;
+  box-shadow: var(--shadow-sm);
+}
+
+.timeline-page .story-card-click-hint {
+  color: #285238;
+  background: #eef5ef;
+  border-color: #b9cfbd;
+}
+
+.timeline-page .timeline-status-indicator-row {
+  margin-bottom: 1.25rem;
+}
+
+@media (max-width: 767px) {
+  .timeline-nav-bar {
+    align-items: stretch;
+  }
+
+  .timeline-nav-arrow {
+    padding: 0.45rem;
+  }
+
+  .timeline-nav-arrow .nav-arrow-text {
+    display: none;
+  }
 }
 
 /* Inline Admin Status Selector */
@@ -5105,7 +5702,7 @@ button, input, select {
 
   .dash-overview-row {
     grid-template-columns: 1fr;
-    gap: 1rem;
+    gap: 1.75rem;
   }
 
   .gauge-card-container {
@@ -5143,14 +5740,13 @@ button, input, select {
   }
 
   .dash-actions-row {
-    flex-direction: column;
-    align-items: stretch;
+    grid-template-columns: 1fr;
     gap: 0.5rem;
   }
 
   .btn-dash {
-    width: 100%;
-    justify-content: center;
+    width: max-content;
+    justify-content: space-between;
   }
 
   /* Sprint Timeline Responsiveness: Knoppen compacter & track scrollt vloeiend */
@@ -5180,15 +5776,21 @@ button, input, select {
   .timeline-steps-track {
     flex: 1;
     min-width: 0;
-    gap: 0.35rem;
+    gap: 1rem;
     padding: 0.15rem 0.2rem;
   }
 
+  .timeline-track-line {
+    width: calc(8 * 116px + 7 * 1.75rem);
+  }
+
   .timeline-step-node {
-    min-width: 58px;
+    width: 116px;
+    min-width: 116px;
+    height: 82px;
+    min-height: 82px;
     padding: 0.35rem 0.45rem;
     gap: 0.1rem;
-    border-radius: var(--radius-sm);
   }
 
   .timeline-step-node .step-badge {
