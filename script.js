@@ -626,17 +626,26 @@ function updateAdminButtonUI() {
   if (!adminToggleBtn) return;
   if (isAdminMode) {
     adminToggleBtn.classList.add("active");
+    adminToggleBtn.setAttribute("aria-pressed", "true");
     adminToggleBtn.innerHTML = `
-      <span class="admin-pulse-dot"></span>
-      <span>Admin Actief (Luc)</span>
+      <svg class="admin-lock-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <rect width="18" height="11" x="3" y="11" rx="2" ry="2"></rect>
+        <path d="M7 11V7a5 5 0 0 1 9.9-1"></path>
+      </svg>
+      <span class="sr-only">Admin Modus Actief</span>
     `;
-    adminToggleBtn.title = "Admin modus is actief: je kunt stories toevoegen, statussen wijzigen en bewijsbestanden koppelen.";
+    adminToggleBtn.title = "Admin modus is actief (klik om te vergrendelen).";
   } else {
     adminToggleBtn.classList.remove("active");
+    adminToggleBtn.setAttribute("aria-pressed", "false");
     adminToggleBtn.innerHTML = `
-      <span>Admin Modus</span>
+      <svg class="admin-lock-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <rect width="18" height="11" x="3" y="11" rx="2" ry="2"></rect>
+        <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
+      </svg>
+      <span class="sr-only">Admin Modus Ontgrendelen</span>
     `;
-    adminToggleBtn.title = "Klik om Admin Modus in te schakelen (uitsluitend geautoriseerd voor Luc).";
+    adminToggleBtn.title = "Admin Modus (klik om te ontgrendelen).";
   }
 }
 
@@ -708,49 +717,91 @@ function initTimelineDragScroll() {
   if (!track || track.dataset.dragReady === "true") return;
 
   track.dataset.dragReady = "true";
+  let isPointerDown = false;
   let isDragging = false;
-  let hasDragged = false;
   let suppressNextClick = false;
   let startX = 0;
   let startScrollLeft = 0;
+  let activePointerId = null;
+  let clickedBtn = null;
 
   track.addEventListener("pointerdown", (event) => {
     if (event.pointerType === "mouse" && event.button !== 0) return;
-    isDragging = true;
-    hasDragged = false;
+    isPointerDown = true;
+    isDragging = false;
     startX = event.clientX;
     startScrollLeft = track.scrollLeft;
-    track.classList.add("is-dragging");
-    track.setPointerCapture?.(event.pointerId);
+    activePointerId = event.pointerId;
+    clickedBtn = event.target.closest(".timeline-step-node");
   });
 
   track.addEventListener("pointermove", (event) => {
-    if (!isDragging) return;
+    if (!isPointerDown) return;
     const distance = event.clientX - startX;
-    if (Math.abs(distance) > 8) hasDragged = true;
-    track.scrollLeft = startScrollLeft - distance;
+    // Pas slepen activeren als de cursor/vinger meer dan 5 pixels beweegt
+    if (!isDragging && Math.abs(distance) > 5) {
+      isDragging = true;
+      track.classList.add("is-dragging");
+      try {
+        if (activePointerId !== null) {
+          track.setPointerCapture(activePointerId);
+        }
+      } catch (e) {}
+    }
+    if (isDragging) {
+      track.scrollLeft = startScrollLeft - distance;
+    }
   });
 
-  const stopDragging = (event) => {
-    if (!isDragging) return;
+  const stopDragging = () => {
+    if (!isPointerDown) return;
+
+    if (isDragging) {
+      suppressNextClick = true;
+      track.classList.remove("is-dragging");
+      try {
+        if (activePointerId !== null && track.hasPointerCapture?.(activePointerId)) {
+          track.releasePointerCapture(activePointerId);
+        }
+      } catch (e) {}
+      setTimeout(() => {
+        suppressNextClick = false;
+      }, 100);
+    } else if (clickedBtn) {
+      // Directe klik zonder sleepbeweging
+      const idx = parseInt(clickedBtn.getAttribute("data-sprint-index"), 10);
+      if (!isNaN(idx) && idx !== currentSprintIndex) {
+        currentSprintIndex = idx;
+        updateTimelineView();
+      }
+    }
+
+    isPointerDown = false;
     isDragging = false;
-    suppressNextClick = hasDragged;
-    track.classList.remove("is-dragging");
-    track.releasePointerCapture?.(event.pointerId);
+    activePointerId = null;
+    clickedBtn = null;
   };
 
   track.addEventListener("pointerup", stopDragging);
   track.addEventListener("pointercancel", stopDragging);
-  track.addEventListener("pointerleave", (event) => {
-    if (isDragging && event.pointerType === "mouse") stopDragging(event);
-  });
+
+  // Delegated click handler op de track als betrouwbare fallback
   track.addEventListener("click", (event) => {
     if (suppressNextClick) {
       event.preventDefault();
       event.stopPropagation();
       suppressNextClick = false;
+      return;
     }
-  }, true);
+    const btn = event.target.closest(".timeline-step-node");
+    if (btn) {
+      const idx = parseInt(btn.getAttribute("data-sprint-index"), 10);
+      if (!isNaN(idx) && idx !== currentSprintIndex) {
+        currentSprintIndex = idx;
+        updateTimelineView();
+      }
+    }
+  });
 }
 
 function updateTimelineView() {
@@ -1076,6 +1127,50 @@ function loadMatrixEvaluations() {
   };
 }
 
+// Leeruitkomsten configuratie (totaal 18 pt doel voor HBO-ICT / Finance & Control assessment)
+const luConfig = [
+  { 
+    code: "LU 1", 
+    name: "LU 1: AI-Impact", 
+    title: "Impact op Beroepspraktijk", 
+    description: "AI-impact op de beroepspraktijk analyseren en evalueren: onderzoeken van kansen, bedreigingen en de veranderende rol van de finance professional.", 
+    maxPts: 2, 
+    num: 1 
+  },
+  { 
+    code: "LU 2", 
+    name: "LU 2: Oplossing", 
+    title: "Praktijkgerichte Oplossing", 
+    description: "Praktijkgerichte AI oplossing ontwerpen, realiseren en presenteren: bouwen van een concreet werkend prototype dat een financieel knelpunt verhelpt.", 
+    maxPts: 4, 
+    num: 2 
+  },
+  { 
+    code: "LU 3", 
+    name: "LU 3: Ethiek", 
+    title: "Ethiek & Verantwoord AI", 
+    description: "Ethiek en verantwoordelijk AI-gebruik beoordelen: data privacy, AVG/GDPR compliance, geanonimiseerde data en transparante besluitvorming.", 
+    maxPts: 2, 
+    num: 3 
+  },
+  { 
+    code: "LU 4", 
+    name: "LU 4: Tools", 
+    title: "AI Tools & Technieken", 
+    description: "AI Tools en technieken effectief gebruiken: prompt engineering, API-koppelingen, n8n/Make workflows en snelle webinterfaces (Vibe-coding).", 
+    maxPts: 4, 
+    num: 4 
+  },
+  { 
+    code: "LU 5", 
+    name: "LU 5: Zelfsturing", 
+    title: "Zelfstandig & Zelfsturend", 
+    description: "Zelfstandig en zelfsturend werken: gestructureerd agile plannen in sprints, feedback integreren, reflecteren en professioneel versiebeheer via GitHub.", 
+    maxPts: 6, 
+    num: 5 
+  }
+];
+
 let matrixEvaluations = loadMatrixEvaluations();
 
 function saveMatrixEvaluations() {
@@ -1086,6 +1181,363 @@ function saveMatrixEvaluations() {
     console.error("Fout bij opslaan van matrix evaluaties:", e);
     showToast("Kon wijzigingen niet opslaan in LocalStorage", "error");
   }
+}
+
+// ==========================================================================
+// Handmatig aanpassen van behaalde punten per Leeruitkomst in Admin Modus
+// ==========================================================================
+function getLuEarnedPoints(luCode) {
+  if (!matrixEvaluations[luCode]) return 0;
+  let pts = 0;
+  for (let s = 1; s <= 8; s++) {
+    if (matrixEvaluations[luCode][s]) pts++;
+  }
+  return pts;
+}
+
+function adjustLuPoints(luCode, delta) {
+  if (!isAdminMode) {
+    showToast("Schakel Admin Modus in (knop met slotje rechtsboven) om punten aan te passen", "info");
+    return;
+  }
+
+  const lu = luConfig.find(l => l.code === luCode);
+  if (!lu) return;
+
+  if (!matrixEvaluations[luCode]) {
+    matrixEvaluations[luCode] = {};
+  }
+
+  const currentPts = getLuEarnedPoints(luCode);
+
+  if (delta > 0) {
+    if (currentPts >= lu.maxPts) {
+      showToast(`Maximum aantal punten (${lu.maxPts} pt) voor ${luCode} is al behaald`, "info");
+      return;
+    }
+    // Zoek eerste sprint zonder checkmark en vink deze aan
+    for (let s = 1; s <= 8; s++) {
+      if (!matrixEvaluations[luCode][s]) {
+        matrixEvaluations[luCode][s] = true;
+        break;
+      }
+    }
+    saveMatrixEvaluations();
+    updateMatrixAndScore();
+    showToast(`+1 punt toegekend aan ${luCode} (${currentPts + 1} / ${lu.maxPts} pt) ✓`, "success");
+  } else if (delta < 0) {
+    if (currentPts <= 0) {
+      showToast(`Punten voor ${luCode} staan al op 0`, "info");
+      return;
+    }
+    // Zoek hoogste sprint met checkmark en haal deze weg
+    for (let s = 8; s >= 1; s--) {
+      if (matrixEvaluations[luCode][s]) {
+        delete matrixEvaluations[luCode][s];
+        break;
+      }
+    }
+    saveMatrixEvaluations();
+    updateMatrixAndScore();
+    showToast(`-1 punt aangepast voor ${luCode} (${currentPts - 1} / ${lu.maxPts} pt)`, "info");
+  }
+
+  // Als de Bewijzen Modal momenteel open staat voor deze LU, vernieuw direct de inhoud
+  const luModal = document.getElementById("lu-evidence-modal");
+  if (luModal && luModal.classList.contains("open")) {
+    openLuEvidenceModal(luCode);
+  }
+}
+
+function promptSetLuPoints(luCode, currentPts, maxPts) {
+  if (!isAdminMode) return;
+  const input = prompt(`Voer het behaalde aantal punten in voor ${luCode} (0 t/m ${maxPts}):`, currentPts);
+  if (input === null) return;
+  const parsed = parseInt(input.trim(), 10);
+  if (isNaN(parsed) || parsed < 0 || parsed > maxPts) {
+    showToast(`Ongeldige invoer. Voer een heel getal in tussen 0 en ${maxPts}.`, "error");
+    return;
+  }
+
+  if (!matrixEvaluations[luCode]) matrixEvaluations[luCode] = {};
+  for (let s = 1; s <= 8; s++) {
+    if (s <= parsed) {
+      matrixEvaluations[luCode][s] = true;
+    } else {
+      delete matrixEvaluations[luCode][s];
+    }
+  }
+
+  saveMatrixEvaluations();
+  updateMatrixAndScore();
+  showToast(`${luCode} punten handmatig ingesteld op ${parsed} / ${maxPts} pt ✓`, "success");
+
+  const luModal = document.getElementById("lu-evidence-modal");
+  if (luModal && luModal.classList.contains("open")) {
+    openLuEvidenceModal(luCode);
+  }
+}
+
+// ==========================================================================
+// Toon Bewijzen Modal & Gekoppelde Stories per Leeruitkomst
+// ==========================================================================
+function openLuEvidenceModal(luCode) {
+  const lu = luConfig.find(l => l.code === luCode);
+  if (!lu) return;
+
+  const modal = document.getElementById("lu-evidence-modal");
+  const modalBody = document.getElementById("lu-modal-dynamic-body");
+  if (!modal || !modalBody) return;
+
+  const earnedPts = getLuEarnedPoints(lu.code);
+  const matchingStories = allStoriesData.filter(st => st.lus && st.lus.includes(lu.code));
+
+  let totalEvidenceCount = 0;
+  matchingStories.forEach(st => {
+    if (st.links && st.links.length > 0) {
+      totalEvidenceCount += st.links.length;
+    }
+  });
+
+  const percent = Math.min(100, Math.round((earnedPts / lu.maxPts) * 100));
+
+  modalBody.innerHTML = `
+    <div class="modal-header lu-modal-header">
+      <div class="modal-badges" style="display: flex; align-items: center; gap: 0.5rem; flex-wrap: wrap;">
+        <span class="lu-badge" style="font-size: 0.85rem; padding: 0.25rem 0.75rem;">${lu.code}</span>
+        
+        ${isAdminMode ? `
+          <div class="lu-admin-stepper in-modal" data-lu="${lu.code}" title="Admin: pas punten aan">
+            <button type="button" class="lu-step-btn minus" data-lu="${lu.code}" title="1 punt verlagen" aria-label="1 punt verlagen voor ${lu.code}" ${earnedPts <= 0 ? 'disabled' : ''}>−</button>
+            <button type="button" class="lu-score-badge editable ${earnedPts >= lu.maxPts ? 'achieved' : (earnedPts > 0 ? 'in-progress' : '')}" data-lu="${lu.code}" title="Klik om direct punten in te voeren">
+              ${earnedPts >= lu.maxPts ? `✓ ${earnedPts} / ${lu.maxPts} pt Voldaan!` : `${earnedPts} / ${lu.maxPts} pt`}
+            </button>
+            <button type="button" class="lu-step-btn plus" data-lu="${lu.code}" title="1 punt verhogen" aria-label="1 punt verhogen voor ${lu.code}" ${earnedPts >= lu.maxPts ? 'disabled' : ''}>+</button>
+          </div>
+        ` : `
+          <span class="lu-score-badge ${earnedPts >= lu.maxPts ? 'achieved' : (earnedPts > 0 ? 'in-progress' : '')}">
+            ${earnedPts >= lu.maxPts ? `✓ ${earnedPts} / ${lu.maxPts} pt Voldaan!` : (earnedPts > 0 ? `⏳ ${earnedPts} / ${lu.maxPts} pt Behaald` : `0 / ${lu.maxPts} pt Doel`)}
+          </span>
+        `}
+
+        <span class="story-type-badge general" style="background: rgba(14, 165, 233, 0.1); color: #0284c7; border: 1px solid rgba(14, 165, 233, 0.25);">
+          ${matchingStories.length} ${matchingStories.length === 1 ? 'story' : 'stories'} gekoppeld
+        </span>
+        <span class="story-type-badge general" style="background: rgba(16, 185, 129, 0.1); color: #059669; border: 1px solid rgba(16, 185, 129, 0.25);">
+          ${totalEvidenceCount} ${totalEvidenceCount === 1 ? 'bewijsstuk' : 'bewijsstukken'}
+        </span>
+      </div>
+
+      <h2 class="modal-title" style="margin-top: 0.75rem; margin-bottom: 0.35rem; font-size: 1.45rem;">
+        Bewijslast voor ${escapeHtml(lu.title)}
+      </h2>
+      <p style="color: var(--text-secondary); margin-bottom: 1rem; font-size: 0.92rem; line-height: 1.5;">
+        ${escapeHtml(lu.description)}
+      </p>
+
+      <!-- Voortgangsbalk van deze specifieke leeruitkomst -->
+      <div class="lu-progress-wrapper" style="margin-bottom: 0.5rem;">
+        <div class="lu-progress-track">
+          <div class="lu-progress-bar ${earnedPts >= lu.maxPts ? 'achieved' : ''}" style="width: ${percent}%;"></div>
+        </div>
+        <div class="lu-progress-stats" style="margin-top: 0.35rem;">
+          <span class="lu-status-text ${earnedPts >= lu.maxPts ? 'achieved' : (earnedPts > 0 ? 'in-progress' : '')}">
+            ${earnedPts >= lu.maxPts ? 'Volledig voldaan voor assessment ✓' : (earnedPts > 0 ? `Deels behaald (${earnedPts} van de ${lu.maxPts} pt)` : `Nog te behalen (${lu.maxPts} pt)`)}
+          </span>
+          <span class="lu-percent-text">${percent}%</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Lijst met Gekoppelde Stories & Directe Bewijsbestanden -->
+    <div class="modal-section" style="padding-top: 0;">
+      <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 0.85rem; flex-wrap: wrap; gap: 0.5rem;">
+        <h3 class="modal-section-title" style="margin-bottom: 0;">
+          Gekoppelde Stories & Externe Bewijsstukken (${matchingStories.length})
+        </h3>
+        ${isAdminMode ? `
+          <button type="button" class="btn-dash primary" id="lu-modal-add-story-btn" style="padding: 0.35rem 0.75rem; font-size: 0.8rem;">
+            + Story toevoegen voor ${lu.code}
+          </button>
+        ` : ''}
+      </div>
+
+      ${matchingStories.length > 0 ? `
+        <div class="lu-evidence-stories-list">
+          ${matchingStories.map(st => {
+            const hasLinks = st.links && st.links.length > 0;
+            return `
+              <div class="lu-evidence-story-card">
+                <div class="lu-evidence-story-top">
+                  <div style="display: flex; align-items: center; gap: 0.5rem; flex-wrap: wrap;">
+                    <span class="story-type-badge ${st.type.toLowerCase()}">${st.code}</span>
+                    <span class="story-sprint-badge">${escapeHtml(st.sprint)}</span>
+                    <span class="story-status-badge ${st.statusType}">
+                      ${st.statusType === 'completed' ? '✓ Voldaan' : (st.statusType === 'progress' ? '⏳ In uitvoering' : '📋 Te doen')}
+                    </span>
+                  </div>
+                  <button type="button" class="lu-view-story-btn" data-story-id="${st.id}" title="Bekijk criteria en feedback van deze story">
+                    Details & Criteria bekijken →
+                  </button>
+                </div>
+
+                <h4 class="lu-evidence-story-title">${escapeHtml(st.title)}</h4>
+                <p class="lu-evidence-story-formula">"${escapeHtml(st.story)}"</p>
+
+                <!-- Bewijsstukken (Files / Links) -->
+                <div class="lu-evidence-files-box">
+                  <div class="lu-evidence-files-header">
+                    <span class="lu-evidence-files-title">
+                      📎 Directe Bewijsstukken (${hasLinks ? st.links.length : 0})
+                    </span>
+                    ${isAdminMode ? `
+                      <button type="button" class="lu-add-file-btn" data-story-id="${st.id}" data-story-code="${st.code}">
+                        + Bestand koppelen
+                      </button>
+                    ` : ''}
+                  </div>
+
+                  ${hasLinks ? `
+                    <div class="lu-evidence-files-grid">
+                      ${st.links.map(l => `
+                        <div class="lu-evidence-file-item">
+                          <div class="lu-evidence-file-info">
+                            <span class="lu-file-icon">${getExternalIcon(l.type)}</span>
+                            <div>
+                              <div class="lu-file-label">${escapeHtml(l.label)}</div>
+                              ${l.note ? `<div class="lu-file-note">${escapeHtml(l.note)}</div>` : ''}
+                            </div>
+                          </div>
+                          <a href="${l.url}" target="_blank" rel="noopener noreferrer" class="ext-link-btn ${l.type}" title="Open externe bewijslast in nieuw tabblad">
+                            Open Bewijs ↗
+                          </a>
+                        </div>
+                      `).join('')}
+                    </div>
+                  ` : `
+                    <p class="lu-evidence-no-files">
+                      Nog geen externe bestanden direct gekoppeld. ${isAdminMode ? 'Klik hierboven op "+ Bestand koppelen" om een OneDrive PDF, GitHub repository of Vercel app toe te voegen.' : 'De bestanden worden tijdens de komende sprints gekoppeld.'}
+                    </p>
+                  `}
+                </div>
+              </div>
+            `;
+          }).join('')}
+        </div>
+      ` : `
+        <div class="lu-evidence-empty-state">
+          <div class="empty-icon" style="font-size: 2.2rem; margin-bottom: 0.5rem;">📂</div>
+          <h4 style="font-weight: 700; color: var(--text-primary); margin-bottom: 0.35rem;">Nog geen stories gekoppeld aan ${lu.code}</h4>
+          <p style="color: var(--text-secondary); font-size: 0.88rem; max-width: 480px; margin: 0 auto 1rem;">
+            Er zijn momenteel geen Research, User of Learning Stories die direct naar ${lu.code} verwijzen.
+            ${isAdminMode ? 'Als beheerder kun je hier direct een story aanmaken.' : 'Zodra stories aan deze leeruitkomst worden gekoppeld, verschijnen ze hier automatisch met alle bijbehorende bewijslast.'}
+          </p>
+          ${isAdminMode ? `
+            <button type="button" class="btn-dash primary" id="lu-modal-empty-add-btn">
+              + Maak eerste story voor ${lu.code}
+            </button>
+          ` : ''}
+        </div>
+      `}
+    </div>
+
+    <!-- Modal Footer Actions -->
+    <div class="modal-footer lu-modal-footer">
+      <div style="display: flex; align-items: center; justify-content: space-between; width: 100%; flex-wrap: wrap; gap: 0.75rem;">
+        <button type="button" class="btn-dash secondary" id="lu-modal-goto-docs-btn" title="Open het centrale overzicht met alle documenten">
+          📂 Bekijk alle bestanden in Bewijzenbibliotheek (#documenten) →
+        </button>
+        <button type="button" class="btn-modal secondary" id="lu-modal-bottom-close-btn">
+          Sluiten
+        </button>
+      </div>
+    </div>
+  `;
+
+  // Koppel handlers binnen de modal
+  // 1. Details & Criteria knop
+  modalBody.querySelectorAll(".lu-view-story-btn").forEach(btn => {
+    btn.addEventListener("click", () => {
+      const storyId = btn.getAttribute("data-story-id");
+      closeLuEvidenceModal();
+      openStoryModal(storyId);
+    });
+  });
+
+  // 2. Admin: Bestand toevoegen aan story
+  modalBody.querySelectorAll(".lu-add-file-btn").forEach(btn => {
+    btn.addEventListener("click", () => {
+      const storyId = btn.getAttribute("data-story-id");
+      closeLuEvidenceModal();
+      openAddLinkModal(storyId);
+    });
+  });
+
+  // 3. Admin: Stepper in modal header
+  const modalMinus = modalBody.querySelector(".lu-step-btn.minus");
+  const modalPlus = modalBody.querySelector(".lu-step-btn.plus");
+  const modalBadge = modalBody.querySelector(".lu-score-badge.editable");
+  if (modalMinus) {
+    modalMinus.addEventListener("click", (e) => {
+      e.stopPropagation();
+      adjustLuPoints(lu.code, -1);
+    });
+  }
+  if (modalPlus) {
+    modalPlus.addEventListener("click", (e) => {
+      e.stopPropagation();
+      adjustLuPoints(lu.code, 1);
+    });
+  }
+  if (modalBadge) {
+    modalBadge.addEventListener("click", (e) => {
+      e.stopPropagation();
+      promptSetLuPoints(lu.code, earnedPts, lu.maxPts);
+    });
+  }
+
+  // 4. Admin: Nieuwe story aanmaken gekoppeld aan deze LU
+  const addStoryBtn = modalBody.querySelector("#lu-modal-add-story-btn") || modalBody.querySelector("#lu-modal-empty-add-btn");
+  if (addStoryBtn) {
+    addStoryBtn.addEventListener("click", () => {
+      closeLuEvidenceModal();
+      openAddStoryModalWithLu(lu.code);
+    });
+  }
+
+  // 5. Ga naar Centrale Documenten Hub
+  const gotoDocsBtn = modalBody.querySelector("#lu-modal-goto-docs-btn");
+  if (gotoDocsBtn) {
+    gotoDocsBtn.addEventListener("click", () => {
+      closeLuEvidenceModal();
+      window.location.hash = "#documenten";
+    });
+  }
+
+  // 6. Sluitknop
+  const bottomCloseBtn = modalBody.querySelector("#lu-modal-bottom-close-btn");
+  if (bottomCloseBtn) {
+    bottomCloseBtn.addEventListener("click", closeLuEvidenceModal);
+  }
+
+  modal.classList.add("open");
+  document.body.style.overflow = "hidden";
+}
+
+function closeLuEvidenceModal() {
+  const modal = document.getElementById("lu-evidence-modal");
+  if (modal) {
+    modal.classList.remove("open");
+    document.body.style.overflow = "";
+  }
+}
+
+function openAddStoryModalWithLu(luCode) {
+  openAddStoryModal(currentSprintIndex || 0);
+  const luCheckboxes = document.querySelectorAll("input[name='story-lu']");
+  luCheckboxes.forEach(cb => {
+    cb.checked = (cb.value === luCode);
+  });
 }
 
 function toggleMatrixCell(luCode, sprintNum) {
@@ -1189,23 +1641,53 @@ function updateMatrixAndScore() {
     const percent = Math.min(100, Math.round((earnedPts / lu.maxPts) * 100));
 
     // Update bijbehorende interactieve LU Card op het scherm
-    const badgeEl = document.getElementById(`lu-score-badge-${lu.num}`);
+    const scoreBoxEl = document.getElementById(`lu-score-box-${lu.num}`);
     const progressBarEl = document.getElementById(`lu-progress-bar-${lu.num}`);
     const statusTextEl = document.getElementById(`lu-status-text-${lu.num}`);
     const percentEl = document.getElementById(`lu-percent-${lu.num}`);
     const countEl = document.getElementById(`lu-stories-count-${lu.num}`);
     const matchingStories = allStories.filter(st => st.lus && st.lus.includes(lu.code));
 
-    if (badgeEl) {
-      badgeEl.className = "lu-score-badge";
-      if (earnedPts >= lu.maxPts) {
-        badgeEl.classList.add("achieved");
-        badgeEl.textContent = `✓ ${earnedPts} / ${lu.maxPts} pt Voldaan!`;
-      } else if (earnedPts > 0) {
-        badgeEl.classList.add("in-progress");
-        badgeEl.textContent = `⏳ ${earnedPts} / ${lu.maxPts} pt Behaald`;
+    if (scoreBoxEl) {
+      if (isAdminMode) {
+        scoreBoxEl.innerHTML = `
+          <div class="lu-admin-stepper" data-lu="${lu.code}" title="Admin modus: pas punten direct aan">
+            <button type="button" class="lu-step-btn minus" data-lu="${lu.code}" aria-label="1 punt verlagen voor ${lu.code}" title="1 punt verlagen" ${earnedPts <= 0 ? 'disabled' : ''}>−</button>
+            <button type="button" class="lu-score-badge editable ${earnedPts >= lu.maxPts ? 'achieved' : (earnedPts > 0 ? 'in-progress' : '')}" data-lu="${lu.code}" title="Klik om direct een aantal punten in te voeren">
+              ${earnedPts >= lu.maxPts ? `✓ ${earnedPts} / ${lu.maxPts} pt` : `${earnedPts} / ${lu.maxPts} pt`}
+            </button>
+            <button type="button" class="lu-step-btn plus" data-lu="${lu.code}" aria-label="1 punt verhogen voor ${lu.code}" title="1 punt verhogen" ${earnedPts >= lu.maxPts ? 'disabled' : ''}>+</button>
+          </div>
+        `;
+
+        const minusBtn = scoreBoxEl.querySelector(".lu-step-btn.minus");
+        const plusBtn = scoreBoxEl.querySelector(".lu-step-btn.plus");
+        const badgeBtn = scoreBoxEl.querySelector(".lu-score-badge.editable");
+
+        if (minusBtn) {
+          minusBtn.addEventListener("click", (e) => {
+            e.stopPropagation();
+            adjustLuPoints(lu.code, -1);
+          });
+        }
+        if (plusBtn) {
+          plusBtn.addEventListener("click", (e) => {
+            e.stopPropagation();
+            adjustLuPoints(lu.code, 1);
+          });
+        }
+        if (badgeBtn) {
+          badgeBtn.addEventListener("click", (e) => {
+            e.stopPropagation();
+            promptSetLuPoints(lu.code, earnedPts, lu.maxPts);
+          });
+        }
       } else {
-        badgeEl.textContent = `0 / ${lu.maxPts} pt Doel`;
+        scoreBoxEl.innerHTML = `
+          <span class="lu-score-badge ${earnedPts >= lu.maxPts ? 'achieved' : (earnedPts > 0 ? 'in-progress' : '')}" id="lu-score-badge-${lu.num}">
+            ${earnedPts >= lu.maxPts ? `✓ ${earnedPts} / ${lu.maxPts} pt Voldaan!` : (earnedPts > 0 ? `⏳ ${earnedPts} / ${lu.maxPts} pt Behaald` : `0 / ${lu.maxPts} pt Doel`)}
+          </span>
+        `;
       }
     }
 
@@ -1681,34 +2163,29 @@ function initFilters() {
       if (el.classList.contains("clickable-lu-card") && e.target.closest(".lu-filter-btn")) {
         return;
       }
+      // Do not trigger modal if clicking inside admin stepper
+      if (e.target.closest(".lu-admin-stepper") || e.target.closest(".lu-step-btn")) {
+        return;
+      }
       const targetLu = el.getAttribute("data-target-lu");
-      if (targetLu) applyLuFilterDirectly(targetLu);
+      if (targetLu) openLuEvidenceModal(targetLu);
     });
 
     el.addEventListener("keydown", (e) => {
       if (e.key === "Enter" || e.key === " ") {
+        if (e.target.closest(".lu-admin-stepper") || e.target.closest(".lu-step-btn")) {
+          return;
+        }
         e.preventDefault();
         const targetLu = el.getAttribute("data-target-lu");
-        if (targetLu) applyLuFilterDirectly(targetLu);
+        if (targetLu) openLuEvidenceModal(targetLu);
       }
     });
   });
 }
 
 function applyLuFilterDirectly(luCode) {
-  currentLuFilter = luCode;
-  localStorage.setItem("luc_portfolio_lu_filter", currentLuFilter);
-
-  document.querySelectorAll("[data-lu-filter]").forEach(b => {
-    b.classList.toggle("active", b.getAttribute("data-lu-filter") === luCode);
-  });
-
-  renderStories();
-
-  const projectSection = document.getElementById("projecten");
-  if (projectSection) {
-    projectSection.scrollIntoView({ behavior: "smooth" });
-  }
+  openLuEvidenceModal(luCode);
 }
 
 function resetFilters() {
@@ -3171,9 +3648,20 @@ document.addEventListener("DOMContentLoaded", () => {
   const modalCloseBtn = document.getElementById("modal-close-btn");
   if (modalCloseBtn) modalCloseBtn.addEventListener("click", closeStoryModal);
 
+  const luEvidenceModal = document.getElementById("lu-evidence-modal");
+  if (luEvidenceModal) {
+    luEvidenceModal.addEventListener("click", (e) => {
+      if (e.target === luEvidenceModal) closeLuEvidenceModal();
+    });
+  }
+
+  const luEvidenceCloseBtn = document.getElementById("lu-evidence-close-btn");
+  if (luEvidenceCloseBtn) luEvidenceCloseBtn.addEventListener("click", closeLuEvidenceModal);
+
   document.addEventListener("keydown", (e) => {
     if (e.key === "Escape") {
       closeStoryModal();
+      closeLuEvidenceModal();
       closeAddStoryModal();
       closeAddLinkModal();
       const authModal = document.getElementById("admin-auth-modal");
