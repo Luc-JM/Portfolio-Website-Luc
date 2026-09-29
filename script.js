@@ -529,7 +529,7 @@ function saveSprintsData() {
     renderCurrentFocusWidget();
   }
   // Synchroniseer direct naar cloud zodat docenten en assessoren altijd de actuele bestanden zien
-  triggerCloudSave();
+  triggerCloudSave(true);
 }
 
 // Flat list van alle stories
@@ -1342,7 +1342,14 @@ function adjustLuPoints(luCode, delta) {
 
 function promptSetLuPoints(luCode, currentPts, maxPts) {
   if (!isAdminMode) return;
-  const input = prompt(`Voer het behaalde aantal punten in voor ${luCode} (0 t/m ${maxPts}):`, currentPts);
+  let input = null;
+  try {
+    input = window.prompt(`Voer het behaalde aantal punten in voor ${luCode} (0 t/m ${maxPts}):`, String(currentPts));
+  } catch (e) {
+    console.warn("window.prompt geblokkeerd of niet ondersteund:", e);
+    showToast("Gebruik de + en − knoppen om punten aan te passen.", "info");
+    return;
+  }
   if (input === null) return;
   const parsed = parseInt(input.trim(), 10);
   if (isNaN(parsed) || parsed < 0 || parsed > maxPts) {
@@ -1467,9 +1474,16 @@ function openLuEvidenceModal(luCode) {
                       ${st.statusType === 'completed' ? '✓ Voldaan' : (st.statusType === 'progress' ? '⏳ In uitvoering' : '📋 Te doen')}
                     </span>
                   </div>
-                  <button type="button" class="lu-view-story-btn" data-story-id="${st.id}" title="Bekijk criteria en feedback van deze story">
-                    Details & Criteria bekijken →
-                  </button>
+                  <div style="display: flex; align-items: center; gap: 0.4rem; flex-wrap: wrap;">
+                    ${isAdminMode ? `
+                      <button type="button" class="lu-edit-story-btn edit-story-btn mini-edit-btn" data-story-id="${st.id}" title="Story bewerken (Admin)">
+                        ✏️ Bewerk
+                      </button>
+                    ` : ''}
+                    <button type="button" class="lu-view-story-btn" data-story-id="${st.id}" title="Bekijk criteria en feedback van deze story">
+                      Details & Criteria bekijken →
+                    </button>
+                  </div>
                 </div>
 
                 <h4 class="lu-evidence-story-title">${escapeHtml(st.title)}</h4>
@@ -1552,6 +1566,15 @@ function openLuEvidenceModal(luCode) {
       const storyId = btn.getAttribute("data-story-id");
       closeLuEvidenceModal();
       openStoryModal(storyId);
+    });
+  });
+
+  // 1b. Admin: Story bewerken vanuit LU modal
+  modalBody.querySelectorAll(".lu-edit-story-btn").forEach(btn => {
+    btn.addEventListener("click", () => {
+      const storyId = btn.getAttribute("data-story-id");
+      closeLuEvidenceModal();
+      openEditStoryModal(storyId);
     });
   });
 
@@ -2396,15 +2419,22 @@ function openStoryModal(storyId) {
         
         ${story.links && story.links.length > 0 ? `
           <div style="display: flex; flex-direction: column; gap: 0.75rem; margin-top: 0.5rem;">
-            ${story.links.map(l => `
+            ${story.links.map((l, linkIdx) => `
               <div style="display: flex; align-items: center; justify-content: space-between; padding: 0.6rem 0.85rem; background: var(--bg-card); border: 1px solid var(--border-subtle); border-radius: var(--radius-sm); flex-wrap: wrap; gap: 0.5rem;">
                 <div>
                   <div style="font-weight: 600; font-size: 0.9rem; color: var(--text-primary);">${getExternalIcon(l.type)} ${escapeHtml(l.label)}</div>
                   <div style="font-size: 0.78rem; color: var(--text-muted);">${escapeHtml(l.note || '')}</div>
                 </div>
-                <a href="${l.url}" target="_blank" rel="noopener noreferrer" class="ext-link-btn ${l.type}">
-                  Openen ↗
-                </a>
+                <div style="display: flex; align-items: center; gap: 0.5rem;">
+                  <a href="${l.url}" target="_blank" rel="noopener noreferrer" class="ext-link-btn ${l.type}">
+                    Openen ↗
+                  </a>
+                  ${isAdminMode ? `
+                    <button type="button" class="modal-delete-link-btn" data-story-id="${story.id}" data-link-idx="${linkIdx}" title="Verwijder dit bestand van ${escapeHtml(story.code)}" style="background: rgba(239, 68, 68, 0.1); border: 1px solid rgba(239, 68, 68, 0.25); color: #ef4444; border-radius: var(--radius-sm); padding: 0.35rem 0.55rem; cursor: pointer; font-size: 0.8rem; display: inline-flex; align-items: center; gap: 0.25rem;">
+                      🗑️ Verwijder
+                    </button>
+                  ` : ''}
+                </div>
               </div>
             `).join('')}
           </div>
@@ -2443,6 +2473,16 @@ function openStoryModal(storyId) {
       openAddLinkModal(story.id);
     });
   }
+
+  // Delete link button inside modal
+  modal.querySelectorAll(".modal-delete-link-btn").forEach(btn => {
+    btn.addEventListener("click", () => {
+      const sId = btn.getAttribute("data-story-id");
+      const lIdx = parseInt(btn.getAttribute("data-link-idx"), 10);
+      deleteStoryLink(sId, lIdx);
+      openStoryModal(sId);
+    });
+  });
 
   modal.classList.add("open");
   document.body.style.overflow = "hidden";
@@ -2532,12 +2572,14 @@ function openAddStoryModal(sprintIndex = 0) {
   const hiddenEditId = document.getElementById("form-edit-story-id");
   const sprintSelect = document.getElementById("form-story-sprint");
   const submitBtn = document.getElementById("btn-submit-story");
+  const deleteBtn = document.getElementById("btn-delete-story");
   const form = document.getElementById("add-story-form");
   if (!modal || !form) return;
 
   if (hiddenEditId) hiddenEditId.value = "";
   if (modalTitle) modalTitle.textContent = "Nieuwe Story Toevoegen";
   if (submitBtn) submitBtn.textContent = "Story Toevoegen & Opslaan";
+  if (deleteBtn) deleteBtn.style.display = "none";
 
   const targetSprint = sprintsData[sprintIndex] || sprintsData[0];
   if (targetBadge) targetBadge.textContent = targetSprint.title.split(':')[0] || `Sprint ${targetSprint.number}`;
@@ -2573,6 +2615,7 @@ function openEditStoryModal(storyId) {
   const acceptatieInput = document.getElementById("form-story-acceptatie");
   const kwaliteitInput = document.getElementById("form-story-kwaliteit");
   const submitBtn = document.getElementById("btn-submit-story");
+  const deleteBtn = document.getElementById("btn-delete-story");
   if (!modal) return;
 
   let sprintIndex = sprintsData.findIndex(s => s.stories && s.stories.some(st => st.id === storyId));
@@ -2582,6 +2625,7 @@ function openEditStoryModal(storyId) {
   if (hiddenEditId) hiddenEditId.value = story.id;
   if (modalTitle) modalTitle.textContent = `Story Bewerken: ${story.code}`;
   if (submitBtn) submitBtn.textContent = "Wijzigingen Opslaan";
+  if (deleteBtn) deleteBtn.style.display = "inline-block";
   if (targetBadge) targetBadge.textContent = targetSprint.title.split(':')[0] || `Sprint ${targetSprint.number}`;
   if (hiddenSprintIdx) hiddenSprintIdx.value = sprintIndex;
   if (sprintSelect) sprintSelect.value = String(sprintIndex);
@@ -2613,11 +2657,39 @@ function initAddStoryForm() {
   const form = document.getElementById("add-story-form");
   const closeBtn = document.getElementById("add-story-close-btn");
   const cancelBtn = document.getElementById("btn-cancel-add-story");
+  const deleteBtn = document.getElementById("btn-delete-story");
   const typeSelect = document.getElementById("form-story-type");
   const sprintSelect = document.getElementById("form-story-sprint");
 
   if (closeBtn) closeBtn.addEventListener("click", closeAddStoryModal);
   if (cancelBtn) cancelBtn.addEventListener("click", closeAddStoryModal);
+
+  if (deleteBtn) {
+    deleteBtn.addEventListener("click", () => {
+      const editStoryId = document.getElementById("form-edit-story-id")?.value.trim();
+      if (!editStoryId) return;
+
+      const story = allStoriesData.find(s => s.id === editStoryId);
+      const code = story ? story.code : editStoryId;
+      if (!confirm(`Weet je zeker dat je story "${code}: ${story ? story.title : ''}" definitief wilt verwijderen? Dit kan niet ongedaan worden gemaakt.`)) {
+        return;
+      }
+
+      for (const sp of sprintsData) {
+        sp.stories = sp.stories.filter(s => s.id !== editStoryId);
+      }
+
+      saveSprintsData();
+      closeAddStoryModal();
+      form.reset();
+
+      renderActiveSprint();
+      renderStories();
+      renderDashboardFilesHub();
+      updateMatrixAndScore();
+      showToast(`Story ${code} succesvol verwijderd en gesynchroniseerd met Supabase!`, "info");
+    });
+  }
 
   if (typeSelect) {
     typeSelect.addEventListener("change", () => {

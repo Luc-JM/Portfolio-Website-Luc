@@ -176,7 +176,7 @@
                 </div>
               </div>
               <div class="dashboard-intro-image-wrap">
-                <img class="dashboard-intro-image" src="/Images/Afbeelding%201.JPG" alt="Afbeelding bij de introductie van het portfolio" width="520" height="360" loading="eager" />
+                <img class="dashboard-intro-image" src="/Images/Afbeelding%201.JPG" onerror="this.onerror=null; this.src='/images/afbeelding-1.jpg';" alt="Afbeelding bij de introductie van het portfolio" width="520" height="360" loading="eager" />
               </div>
             </div>
 
@@ -184,7 +184,7 @@
 
             <div class="dashboard-feature-block">
               <div class="dashboard-feature-image-wrap">
-                <img class="dashboard-feature-image" src="/Images/Afbeelding%205.jpeg" alt="Afbeelding bij mijn ontwikkeling" width="400" height="400" loading="lazy" />
+                <img class="dashboard-feature-image" src="/Images/Afbeelding%205.jpeg" onerror="this.onerror=null; this.src='/images/afbeelding-5.jpeg';" alt="Afbeelding bij mijn ontwikkeling" width="400" height="400" loading="lazy" />
               </div>
               <div class="dashboard-feature-copy">
                 <h2>Van finance naar slimme oplossingen</h2>
@@ -213,7 +213,7 @@
                 <p>Ik onderzoek hoe AI en process mining financiële processen slimmer, transparanter en beter bestuurbaar kunnen maken.</p>
               </div>
               <div class="about-image-wrap">
-                <img class="about-image" src="/Images/Afbeelding%204.JPG?v=2" alt="Afbeelding voor de Over mij-pagina" width="600" height="450" loading="lazy" />
+                <img class="about-image" src="/Images/Afbeelding%204.JPG?v=2" onerror="this.onerror=null; this.src='/images/afbeelding-4.jpg';" alt="Afbeelding voor de Over mij-pagina" width="600" height="450" loading="lazy" />
               </div>
             </div>
 
@@ -966,9 +966,14 @@
             <textarea id="form-story-kwaliteit" class="admin-textarea" rows="3" placeholder="1. Kwaliteitsnorm 1&#10;2. Kwaliteitsnorm 2"></textarea>
           </div>
 
-          <div class="modal-form-actions">
-            <button type="button" class="btn-modal secondary" id="btn-cancel-add-story">Annuleren</button>
-            <button type="submit" class="btn-modal primary" id="btn-submit-story">Story Toevoegen & Opslaan</button>
+          <div class="modal-form-actions" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 0.5rem;">
+            <button type="button" class="btn-modal danger" id="btn-delete-story" style="display: none; background: #dc2626; color: #ffffff; border: 1px solid #b91c1c; padding: 0.5rem 0.9rem; border-radius: var(--radius-sm); font-size: 0.85rem; font-weight: 600; cursor: pointer;">
+              🗑️ Story Verwijderen
+            </button>
+            <div style="display: flex; gap: 0.5rem; margin-left: auto;">
+              <button type="button" class="btn-modal secondary" id="btn-cancel-add-story">Annuleren</button>
+              <button type="submit" class="btn-modal primary" id="btn-submit-story">Story Toevoegen & Opslaan</button>
+            </div>
           </div>
         </form>
       </div>
