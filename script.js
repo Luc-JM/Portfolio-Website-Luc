@@ -301,9 +301,10 @@ function updateCloudStatusBadge(isSynced, sourceName = "") {
 
 // Debounced cloud save om zowel naar Supabase als naar de server state te schrijven
 let syncTimeout = null;
-function triggerCloudSave() {
+function triggerCloudSave(immediate = false) {
   clearTimeout(syncTimeout);
-  syncTimeout = setTimeout(async () => {
+
+  const doSave = async () => {
     const payload = {
       sprints_data: sprintsData,
       matrix_data: typeof matrixEvaluations !== "undefined" ? matrixEvaluations : null,
@@ -329,7 +330,7 @@ function triggerCloudSave() {
           .upsert({ id: "main", ...payload }, { onConflict: "id" });
         if (!error) {
           savedToSupabase = true;
-          console.log("Portfolio data succesvol opgeslagen in Supabase.");
+          console.log("Portfolio data (stories & punten) succesvol opgeslagen in Supabase.");
         } else {
           console.warn("Supabase upsert melding:", error.message);
         }
@@ -359,7 +360,65 @@ function triggerCloudSave() {
     } else {
       updateCloudStatusBadge(false);
     }
-  }, 350);
+  };
+
+  if (immediate) {
+    doSave();
+  } else {
+    syncTimeout = setTimeout(doSave, 350);
+  }
+}
+
+// Realtime synchronisatie: wijzigingen in punten of stories direct tonen op alle apparaten
+let realtimeChannel = null;
+function initRealtimeSync() {
+  if (realtimeChannel) return;
+  const client = getSupabaseClient();
+  if (!client) return;
+
+  try {
+    realtimeChannel = client
+      .channel("public-portfolio-state-sync")
+      .on(
+        "postgres_changes",
+        { event: "*", schema: "public", table: "portfolio_state" },
+        (payload) => {
+          console.log("Supabase Realtime update ontvangen:", payload);
+          const newRecord = payload.new;
+          if (newRecord && newRecord.id === "main") {
+            let shouldRerender = false;
+            if (newRecord.sprints_data && Array.isArray(newRecord.sprints_data) && newRecord.sprints_data.length === 8) {
+              sprintsData = newRecord.sprints_data;
+              localStorage.setItem(STORAGE_KEY, JSON.stringify(sprintsData));
+              shouldRerender = true;
+            }
+            if (newRecord.matrix_data && typeof newRecord.matrix_data === "object") {
+              matrixEvaluations = newRecord.matrix_data;
+              localStorage.setItem("luc_portfolio_manual_matrix_evaluations", JSON.stringify(matrixEvaluations));
+              shouldRerender = true;
+            }
+            if (shouldRerender) {
+              updateAllStoriesData();
+              renderActiveSprint();
+              renderStories();
+              renderDashboardFilesHub();
+              updateMatrixAndScore();
+              if (typeof renderCurrentFocusWidget === "function") {
+                renderCurrentFocusWidget();
+              }
+              updateCloudStatusBadge(true, "Supabase Live");
+            }
+          }
+        }
+      )
+      .subscribe((status) => {
+        if (status === "SUBSCRIBED") {
+          console.log("Supabase Realtime kanaal verbonden. Punten worden live gedeeld.");
+        }
+      });
+  } catch (err) {
+    console.warn("Supabase Realtime fout:", err);
+  }
 }
 
 // Haal de meest actuele portfolio documenten en data op vanuit de cloud bij het laden van de pagina
@@ -435,9 +494,17 @@ async function syncPortfolioDataFromCloud() {
       renderCurrentFocusWidget();
     }
     updateCloudStatusBadge(true, source);
+  } else if (cloudMatrix && typeof matrixEvaluations !== "undefined") {
+    matrixEvaluations = cloudMatrix;
+    localStorage.setItem("luc_portfolio_manual_matrix_evaluations", JSON.stringify(matrixEvaluations));
+    updateMatrixAndScore();
+    updateCloudStatusBadge(true, source);
   } else {
     updateCloudStatusBadge(false);
   }
+
+  // Activeer realtime synchronisatie zodat iedereen live de punten & stories ziet updaten
+  initRealtimeSync();
 }
 
 function loadSprintsData() {
@@ -1200,7 +1267,7 @@ let matrixEvaluations = loadMatrixEvaluations();
 function saveMatrixEvaluations() {
   try {
     localStorage.setItem(MATRIX_STORAGE_KEY, JSON.stringify(matrixEvaluations));
-    triggerCloudSave();
+    triggerCloudSave(true);
   } catch (e) {
     console.error("Fout bij opslaan van matrix evaluaties:", e);
     showToast("Kon wijzigingen niet opslaan in LocalStorage", "error");
