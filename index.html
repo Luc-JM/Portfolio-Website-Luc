@@ -893,8 +893,22 @@
 
         <form id="add-story-form" class="admin-modal-form">
           <input type="hidden" id="form-sprint-index" value="1">
+          <input type="hidden" id="form-edit-story-id" value="">
           
           <div class="form-row-2">
+            <div class="form-group">
+              <label for="form-story-sprint">Sprint:</label>
+              <select id="form-story-sprint" class="admin-select" required>
+                <option value="0">Sprint 1 (W1-2: Oriëntatie & Portfolio)</option>
+                <option value="1">Sprint 2 (W3-4: Verdieping Knelpunt & Prototype)</option>
+                <option value="2">Sprint 3 (W5-6: Dataverzameling & Modelleren)</option>
+                <option value="3">Sprint 4 (W7-8: Verfijning & Validatie)</option>
+                <option value="4">Sprint 5 (W9-10: Integratie & Dashboarding)</option>
+                <option value="5">Sprint 6 (W11-12: Implementatie & Ethisch Kader)</option>
+                <option value="6">Sprint 7 (W13-14: Eindrapportage & Optimalisatie)</option>
+                <option value="7">Sprint 8 (W15-16: Assessment & Oplevering)</option>
+              </select>
+            </div>
             <div class="form-group">
               <label for="form-story-type">Type Story:</label>
               <select id="form-story-type" class="admin-select" required>
@@ -903,9 +917,21 @@
                 <option value="LS">Learning Story (LS - Persoonlijke Ontwikkeling & Kennis)</option>
               </select>
             </div>
+          </div>
+
+          <div class="form-row-2">
             <div class="form-group">
               <label for="form-story-code">Story Code:</label>
               <input type="text" id="form-story-code" class="admin-input" placeholder="bijv. RS-04, US-03 of LS-01" required>
+            </div>
+            <div class="form-group">
+              <label for="form-story-status">Status:</label>
+              <select id="form-story-status" class="admin-select" required>
+                <option value="planned">Gepland</option>
+                <option value="progress">In uitvoering</option>
+                <option value="review">Afgerond / Ter review</option>
+                <option value="completed">✓ Behaald (V)</option>
+              </select>
             </div>
           </div>
 
@@ -931,16 +957,6 @@
           </div>
 
           <div class="form-group">
-            <label for="form-story-status">Aanvangsstatus:</label>
-            <select id="form-story-status" class="admin-select" required>
-                  <option value="planned">Gepland</option>
-              <option value="progress">In uitvoering</option>
-                  <option value="review">Afgerond / Ter review</option>
-              <option value="completed">✓ Behaald (V)</option>
-            </select>
-          </div>
-
-          <div class="form-group">
             <label for="form-story-acceptatie">Acceptatiecriteria (één regel per criterium):</label>
             <textarea id="form-story-acceptatie" class="admin-textarea" rows="3" placeholder="1. Criterium 1&#10;2. Criterium 2"></textarea>
           </div>
@@ -952,7 +968,7 @@
 
           <div class="modal-form-actions">
             <button type="button" class="btn-modal secondary" id="btn-cancel-add-story">Annuleren</button>
-            <button type="submit" class="btn-modal primary">Story Toevoegen & Opslaan</button>
+            <button type="submit" class="btn-modal primary" id="btn-submit-story">Story Toevoegen & Opslaan</button>
           </div>
         </form>
       </div>

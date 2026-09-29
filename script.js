@@ -141,7 +141,14 @@ const defaultSprintsData = [
           "Robuustheid: Bevat basale foutafhandeling.",
           "Deployment: Gekoppeld aan GitHub en live testbaar."
         ],
-        links: []
+        links: [
+          {
+            type: "vercel",
+            label: "AI-Bottleneck Analist PrototypeV1.0",
+            url: "https://ai-bottleneck-analist-app.vercel.app/",
+            note: "Interactief prototype voor financieel process mining knelpunt"
+          }
+        ]
       }
     ]
   },
@@ -247,8 +254,8 @@ let supabaseClient = null;
 function getSupabaseClient() {
   if (supabaseClient) return supabaseClient;
   try {
-    let rawUrl = (import.meta.env.VITE_SUPABASE_URL || "").trim();
-    const rawKey = (import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY || "").trim();
+    let rawUrl = (import.meta.env.VITE_SUPABASE_URL || "https://wllvfqseygzflhxjcbxx.supabase.co").trim();
+    const rawKey = (import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY || "sb_publishable_sgqDhrYKYToCWuNkIPy9Ig_N4YW11S9").trim();
 
     // Valideer of herstel naar officieel project endpoint als URL ontbreekt of per ongeluk geen http(s) bevat
     if (!rawUrl || (!rawUrl.startsWith("http://") && !rawUrl.startsWith("https://"))) {
@@ -391,16 +398,19 @@ async function syncPortfolioDataFromCloud() {
     }
   }
 
-  // 2. Probeer server state API als fallback
+  // 2. Probeer server state API als fallback (of statische JSON op Vercel)
   if (!cloudSprints) {
     try {
-      const resp = await fetch("/api/portfolio/state");
+      let resp = await fetch("/api/portfolio/state");
+      if (!resp.ok) {
+        resp = await fetch("/portfolio-state.json");
+      }
       if (resp.ok) {
         const serverData = await resp.json();
         if (serverData?.sprints_data && Array.isArray(serverData.sprints_data) && serverData.sprints_data.length === 8) {
           cloudSprints = serverData.sprints_data;
           if (serverData.matrix_data) cloudMatrix = serverData.matrix_data;
-          source = "Cloud";
+          source = "Portfolio Backup";
         }
       }
     } catch (err) {
@@ -1017,9 +1027,14 @@ function renderActiveSprint() {
                 </div>
 
                 ${isAdminMode ? `
-                  <button class="add-story-file-btn" data-story-id="${story.id}" title="Voeg een bewijsbestand of externe link toe" onclick="event.stopPropagation()">
-                    + Bestand toevoegen
-                  </button>
+                  <div style="display: inline-flex; align-items: center; gap: 0.4rem;">
+                    <button class="edit-story-btn mini-edit-btn" data-story-id="${story.id}" title="Bewerk deze story (Admin)" onclick="event.stopPropagation()">
+                      ✏️ Bewerk
+                    </button>
+                    <button class="add-story-file-btn" data-story-id="${story.id}" title="Voeg een bewijsbestand of externe link toe" onclick="event.stopPropagation()">
+                      + Bestand
+                    </button>
+                  </div>
                 ` : ''}
               </div>
 
@@ -1054,6 +1069,15 @@ function renderActiveSprint() {
       const storyId = sel.getAttribute("data-story-id");
       const newStatusType = sel.value;
       updateStoryStatus(storyId, newStatusType);
+    });
+  });
+
+  // Bewerken van story in active sprint
+  container.querySelectorAll(".edit-story-btn").forEach(btn => {
+    btn.addEventListener("click", (e) => {
+      e.stopPropagation();
+      const storyId = btn.getAttribute("data-story-id");
+      if (storyId) openEditStoryModal(storyId);
     });
   });
 
@@ -2071,6 +2095,9 @@ function renderStories() {
             `}
 
             ${isAdminMode ? `
+              <button class="edit-story-btn" data-story-id="${story.id}" title="Story bewerken (Admin)">
+                ✏️ Bewerk
+              </button>
               <button class="add-story-file-btn" data-story-id="${story.id}" title="Voeg bestand of link toe">
                 + Bestand
               </button>
@@ -2091,6 +2118,15 @@ function renderStories() {
     btn.addEventListener("click", () => {
       const storyId = btn.getAttribute("data-story-id");
       openStoryModal(storyId);
+    });
+  });
+
+  // Bewerken van stories
+  container.querySelectorAll(".edit-story-btn").forEach(btn => {
+    btn.addEventListener("click", (e) => {
+      e.stopPropagation();
+      const storyId = btn.getAttribute("data-story-id");
+      if (storyId) openEditStoryModal(storyId);
     });
   });
 
@@ -2226,20 +2262,28 @@ function openStoryModal(storyId) {
       </div>
       <h2 class="modal-title">${escapeHtml(story.title)}</h2>
       
-      <div style="display: flex; align-items: center; gap: 0.75rem; margin-top: 0.5rem; flex-wrap: wrap;">
-        <span style="font-size: 0.85rem; color: var(--text-muted);">Status:</span>
+      <div style="display: flex; align-items: center; justify-content: space-between; gap: 0.75rem; margin-top: 0.5rem; flex-wrap: wrap;">
+        <div style="display: flex; align-items: center; gap: 0.5rem;">
+          <span style="font-size: 0.85rem; color: var(--text-muted);">Status:</span>
+          ${isAdminMode ? `
+            <select id="modal-status-select" class="admin-inline-status-select">
+              <option value="completed" ${story.statusType === 'completed' ? 'selected' : ''}>✓ Behaald (V)</option>
+              <option value="progress" ${story.statusType === 'progress' ? 'selected' : ''}>⏳ In uitvoering</option>
+              <option value="review" ${story.statusType === 'review' ? 'selected' : ''}>Afgerond / Ter review</option>
+              <option value="planned" ${story.statusType === 'planned' ? 'selected' : ''}>Gepland</option>
+            </select>
+          ` : `
+            <span class="status-pill ${story.statusType}">
+              ${getStatusLabel(story.statusType)}
+            </span>
+          `}
+        </div>
+
         ${isAdminMode ? `
-          <select id="modal-status-select" class="admin-inline-status-select">
-            <option value="completed" ${story.statusType === 'completed' ? 'selected' : ''}>✓ Behaald (V)</option>
-            <option value="progress" ${story.statusType === 'progress' ? 'selected' : ''}>⏳ In uitvoering</option>
-            <option value="review" ${story.statusType === 'review' ? 'selected' : ''}>Afgerond / Ter review</option>
-            <option value="planned" ${story.statusType === 'planned' ? 'selected' : ''}>Gepland</option>
-          </select>
-        ` : `
-          <span class="status-pill ${story.statusType}">
-            ${getStatusLabel(story.statusType)}
-          </span>
-        `}
+          <button class="edit-story-btn" id="modal-btn-edit-story" style="font-size: 0.82rem; padding: 0.35rem 0.75rem;">
+            ✏️ Story Volledig Bewerken
+          </button>
+        ` : ''}
       </div>
     </div>
 
@@ -2312,6 +2356,15 @@ function openStoryModal(storyId) {
     modalStatusSelect.addEventListener("change", (e) => {
       const newStatus = e.target.value;
       updateStoryStatus(story.id, newStatus);
+    });
+  }
+
+  // Edit story button inside modal
+  const modalBtnEditStory = document.getElementById("modal-btn-edit-story");
+  if (modalBtnEditStory) {
+    modalBtnEditStory.addEventListener("click", () => {
+      closeStoryModal();
+      openEditStoryModal(story.id);
     });
   }
 
@@ -2406,17 +2459,76 @@ function updateSuggestedStoryCode() {
 
 function openAddStoryModal(sprintIndex = 0) {
   const modal = document.getElementById("add-story-modal");
+  const modalTitle = document.getElementById("add-story-modal-title");
   const targetBadge = document.getElementById("modal-target-sprint-badge");
   const hiddenSprintIdx = document.getElementById("form-sprint-index");
+  const hiddenEditId = document.getElementById("form-edit-story-id");
+  const sprintSelect = document.getElementById("form-story-sprint");
+  const submitBtn = document.getElementById("btn-submit-story");
   const form = document.getElementById("add-story-form");
   if (!modal || !form) return;
+
+  if (hiddenEditId) hiddenEditId.value = "";
+  if (modalTitle) modalTitle.textContent = "Nieuwe Story Toevoegen";
+  if (submitBtn) submitBtn.textContent = "Story Toevoegen & Opslaan";
 
   const targetSprint = sprintsData[sprintIndex] || sprintsData[0];
   if (targetBadge) targetBadge.textContent = targetSprint.title.split(':')[0] || `Sprint ${targetSprint.number}`;
   if (hiddenSprintIdx) hiddenSprintIdx.value = sprintIndex;
+  if (sprintSelect) sprintSelect.value = String(sprintIndex);
+
+  form.reset();
+  if (sprintSelect) sprintSelect.value = String(sprintIndex);
+  if (hiddenSprintIdx) hiddenSprintIdx.value = sprintIndex;
 
   // Suggest story code (RS-0X, US-0X of LS-0X)
   updateSuggestedStoryCode();
+
+  modal.classList.add("open");
+  document.body.style.overflow = "hidden";
+}
+
+function openEditStoryModal(storyId) {
+  const story = allStoriesData.find(s => s.id === storyId);
+  if (!story) return;
+
+  const modal = document.getElementById("add-story-modal");
+  const modalTitle = document.getElementById("add-story-modal-title");
+  const targetBadge = document.getElementById("modal-target-sprint-badge");
+  const hiddenSprintIdx = document.getElementById("form-sprint-index");
+  const hiddenEditId = document.getElementById("form-edit-story-id");
+  const sprintSelect = document.getElementById("form-story-sprint");
+  const typeSelect = document.getElementById("form-story-type");
+  const codeInput = document.getElementById("form-story-code");
+  const statusSelect = document.getElementById("form-story-status");
+  const titleInput = document.getElementById("form-story-title");
+  const formulaInput = document.getElementById("form-story-formula");
+  const acceptatieInput = document.getElementById("form-story-acceptatie");
+  const kwaliteitInput = document.getElementById("form-story-kwaliteit");
+  const submitBtn = document.getElementById("btn-submit-story");
+  if (!modal) return;
+
+  let sprintIndex = sprintsData.findIndex(s => s.stories && s.stories.some(st => st.id === storyId));
+  if (sprintIndex === -1) sprintIndex = 0;
+  const targetSprint = sprintsData[sprintIndex];
+
+  if (hiddenEditId) hiddenEditId.value = story.id;
+  if (modalTitle) modalTitle.textContent = `Story Bewerken: ${story.code}`;
+  if (submitBtn) submitBtn.textContent = "Wijzigingen Opslaan";
+  if (targetBadge) targetBadge.textContent = targetSprint.title.split(':')[0] || `Sprint ${targetSprint.number}`;
+  if (hiddenSprintIdx) hiddenSprintIdx.value = sprintIndex;
+  if (sprintSelect) sprintSelect.value = String(sprintIndex);
+  if (typeSelect) typeSelect.value = story.type;
+  if (codeInput) codeInput.value = story.code;
+  if (statusSelect) statusSelect.value = story.statusType;
+  if (titleInput) titleInput.value = story.title;
+  if (formulaInput) formulaInput.value = story.story;
+  if (acceptatieInput) acceptatieInput.value = (story.acceptatiecriteria || []).join("\n");
+  if (kwaliteitInput) kwaliteitInput.value = (story.kwaliteitscriteria || []).join("\n");
+
+  document.querySelectorAll("input[name='story-lu']").forEach(cb => {
+    cb.checked = Array.isArray(story.lus) && story.lus.includes(cb.value);
+  });
 
   modal.classList.add("open");
   document.body.style.overflow = "hidden";
@@ -2435,12 +2547,29 @@ function initAddStoryForm() {
   const closeBtn = document.getElementById("add-story-close-btn");
   const cancelBtn = document.getElementById("btn-cancel-add-story");
   const typeSelect = document.getElementById("form-story-type");
+  const sprintSelect = document.getElementById("form-story-sprint");
 
   if (closeBtn) closeBtn.addEventListener("click", closeAddStoryModal);
   if (cancelBtn) cancelBtn.addEventListener("click", closeAddStoryModal);
 
   if (typeSelect) {
-    typeSelect.addEventListener("change", updateSuggestedStoryCode);
+    typeSelect.addEventListener("change", () => {
+      const editId = document.getElementById("form-edit-story-id")?.value;
+      if (!editId) updateSuggestedStoryCode();
+    });
+  }
+
+  if (sprintSelect) {
+    sprintSelect.addEventListener("change", (e) => {
+      const sIdx = parseInt(e.target.value, 10);
+      const hiddenSprintIdx = document.getElementById("form-sprint-index");
+      if (hiddenSprintIdx) hiddenSprintIdx.value = sIdx;
+      const targetBadge = document.getElementById("modal-target-sprint-badge");
+      const sp = sprintsData[sIdx];
+      if (targetBadge && sp) {
+        targetBadge.textContent = sp.title.split(':')[0] || `Sprint ${sp.number}`;
+      }
+    });
   }
 
   const modal = document.getElementById("add-story-modal");
@@ -2454,6 +2583,7 @@ function initAddStoryForm() {
     form.addEventListener("submit", (e) => {
       e.preventDefault();
       const sprintIdx = parseInt(document.getElementById("form-sprint-index").value, 10);
+      const editStoryId = document.getElementById("form-edit-story-id")?.value.trim();
       const storyType = document.getElementById("form-story-type").value; // RS, US of LS
       const code = document.getElementById("form-story-code").value.trim();
       const title = document.getElementById("form-story-title").value.trim();
@@ -2481,8 +2611,54 @@ function initAddStoryForm() {
         .map(l => l.trim().replace(/^\d+[\.\)]\s*/, ''))
         .filter(l => l.length > 0);
 
-      const targetSprint = sprintsData[sprintIdx];
+      const targetSprint = sprintsData[sprintIdx] || sprintsData[0];
       const typeName = storyType === "RS" ? "Research Story" : (storyType === "US" ? "User Story" : "Learning Story");
+
+      if (editStoryId) {
+        let foundStory = null;
+        let originalSprint = null;
+        for (const sp of sprintsData) {
+          const st = sp.stories.find(s => s.id === editStoryId);
+          if (st) {
+            foundStory = st;
+            originalSprint = sp;
+            break;
+          }
+        }
+
+        if (foundStory) {
+          foundStory.code = code || foundStory.code;
+          foundStory.type = storyType;
+          foundStory.typeName = typeName;
+          foundStory.title = title;
+          foundStory.story = formula;
+          foundStory.lus = selectedLus;
+          foundStory.status = getStatusLabel(statusType);
+          foundStory.statusType = statusType;
+          foundStory.acceptatiecriteria = acceptatiecriteria.length > 0 ? acceptatiecriteria : ["Gedocumenteerd volgens richtlijnen."];
+          foundStory.kwaliteitscriteria = kwaliteitscriteria.length > 0 ? kwaliteitscriteria : ["Kwalitatief getoetst aan de minor normen."];
+
+          // Verplaatsen naar andere sprint indien gewijzigd
+          if (originalSprint && originalSprint !== targetSprint) {
+            originalSprint.stories = originalSprint.stories.filter(s => s.id !== editStoryId);
+            foundStory.sprint = `Sprint ${targetSprint.number}`;
+            targetSprint.stories.push(foundStory);
+          } else {
+            foundStory.sprint = `Sprint ${targetSprint.number}`;
+          }
+
+          saveSprintsData();
+          closeAddStoryModal();
+          form.reset();
+
+          renderActiveSprint();
+          renderStories();
+          renderDashboardFilesHub();
+          updateMatrixAndScore();
+          showToast(`Story ${foundStory.code} succesvol bijgewerkt en opgeslagen in de cloud!`, "success");
+          return;
+        }
+      }
 
       const newStory = {
         id: `story-${Date.now()}`,

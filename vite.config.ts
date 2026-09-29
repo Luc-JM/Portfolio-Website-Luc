@@ -39,6 +39,8 @@ function chatApiPlugin() {
         try {
           const stateFile = path.resolve(__dirname, 'portfolio-state.json');
           fs.writeFileSync(stateFile, body, 'utf-8');
+          const publicStateFile = path.resolve(__dirname, 'public', 'portfolio-state.json');
+          fs.writeFileSync(publicStateFile, body, 'utf-8');
           res.statusCode = 200;
           res.setHeader('Content-Type', 'application/json');
           res.end(JSON.stringify({ success: true }));
